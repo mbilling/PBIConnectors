@@ -22,18 +22,18 @@ We would prefer the raw hit-level data behind each aggregated date but that is n
 
 ## The Facebook Pages Insight Connector
 
-This connector is focused on accessing page insights using the pages insights API: [fb_pages_insights]
+This connector is focused on accessing page insights using the pages insights API: [Facebook Pages Insight][fb_pages_insights]
 
 The built-in Facebook connector provides access to Facebook user profile, not pages or campaign manager ads.
 
-This is how it looks in Power BI
+This is how it looks in Power BI:
 
 <img src="https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG" alt="The Facebook Pages Insight Connector in Power BI" title="The Facebook Pages Insight Connector in Power BI"/>
 
 
 ## How to use the custom connectors
 
-
+The code for the 3 connectors has to be compiled into a .mez file. File ending will change to .pqx according to [Microsoft custom connector repo][https://github.com/Microsoft/DataConnectors].
 
 
 [fb_pages_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
