@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "LinkedIn", "LinkedIn\LinkedIn.mproj", "{DB3CD40A-0808-4F9E-877E-4DB2155B7CE2}"
+EndProject
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "Stripe", "Stripe\Stripe.mproj", "{A533AB35-5897-4934-AC52-8DB037DC1341}"
+EndProject
+Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "FacebookPages", "FacebookPages\FacebookPages.mproj", "{0C0070FE-5B33-4620-BE2C-86B47DD57576}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DB3CD40A-0808-4F9E-877E-4DB2155B7CE2}.Debug|x86.ActiveCfg = Debug|x86
+		{DB3CD40A-0808-4F9E-877E-4DB2155B7CE2}.Debug|x86.Build.0 = Debug|x86
+		{DB3CD40A-0808-4F9E-877E-4DB2155B7CE2}.Release|x86.ActiveCfg = Release|x86
+		{DB3CD40A-0808-4F9E-877E-4DB2155B7CE2}.Release|x86.Build.0 = Release|x86
+		{A533AB35-5897-4934-AC52-8DB037DC1341}.Debug|x86.ActiveCfg = Debug|x86
+		{A533AB35-5897-4934-AC52-8DB037DC1341}.Debug|x86.Build.0 = Debug|x86
+		{A533AB35-5897-4934-AC52-8DB037DC1341}.Release|x86.ActiveCfg = Release|x86
+		{A533AB35-5897-4934-AC52-8DB037DC1341}.Release|x86.Build.0 = Release|x86
+		{0C0070FE-5B33-4620-BE2C-86B47DD57576}.Debug|x86.ActiveCfg = Debug|x86
+		{0C0070FE-5B33-4620-BE2C-86B47DD57576}.Debug|x86.Build.0 = Debug|x86
+		{0C0070FE-5B33-4620-BE2C-86B47DD57576}.Release|x86.ActiveCfg = Release|x86
+		{0C0070FE-5B33-4620-BE2C-86B47DD57576}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DAB87B70-BCEC-49AB-92A3-B4FA04A29594}
+	EndGlobalSection
+EndGlobal

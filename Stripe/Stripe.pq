@@ -1,0 +1,432 @@
+﻿section StripePlus;
+
+windowWidth = 1200;
+windowHeight = 1000;
+
+// Data Source Kind description
+StripePlus = [
+    Authentication = [
+        UsernamePassword = [
+            UsernameLabel="Enter Stripe API key"
+        ]
+    ],
+    Label = Extension.LoadString("DataSourceLabel")
+];
+
+// Data Source UI publishing description
+StripePlus.Publish = [
+    Beta = true,
+    Category = "Other",
+    ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
+    LearnMoreUrl = "https://github.com/mbilling/pbiconnectors",
+    SourceImage = StripePlus.Icons,
+    SourceTypeImage = StripePlus.Icons
+];
+
+StripePlus.Icons = [
+    Icon16 = { Extension.Contents("Stripe16.png"), Extension.Contents("Stripe20.png"), Extension.Contents("Stripe24.png"), Extension.Contents("Stripe32.png") },
+    Icon32 = { Extension.Contents("Stripe32.png"), Extension.Contents("Stripe40.png"), Extension.Contents("Stripe48.png"), Extension.Contents("Stripe64.png") }
+];
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                      CONNECTOR METADATA
+///////////////////////////////////////////////////////////////////////////////////////////////////
+[DataSource.Kind="StripePlus", Publish="StripePlus.Publish"]
+shared StripePlus.Navigation = Value.ReplaceType(Navigation, NavigationType);
+
+NavigationType = type function () as table meta [                  
+        Documentation.Name = "Stripe",
+        Documentation.LongDescription = "Accesses all objects available through the Stripe API.",
+        Documentation.Examples = {[
+            Description = "",
+            Code = "",
+            Result = ""
+        ]}
+    ];
+
+ Navigation = () =>
+    let
+        objects = #table(
+            {"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"},
+            {
+                {"Core Resources",  "NavTableCoreResources",    NavTableCoreResources(),    "Folder",    "Folder",    false},
+                {"Subscriptions",   "NavTableSubscriptions",    NavTableSubscriptions(),    "Folder",    "Folder",    false},
+                {"Account",         "NavTableAccount",          NavTableAccount(),          "Folder",    "Folder",    false},
+                {"Relay",           "NavTableRelay",            NavTableRelay(),            "Folder",    "Folder",    false}
+            }),
+            NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf") 
+    in
+        NavTable;
+
+NavTableCoreResources = () as table => 
+    let
+        objects = #table(
+            {
+                "Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
+                {"Balance History", "StripePlus.BalanceHistory",    StripePlus.BalanceHistory(),    "Table", "Table", true},
+                {"Charges",         "StripePlus.Charges",           StripePlus.Charges(),           "Table", "Table", true},
+                {"Customers",       "StripePlus.Customers",         StripePlus.Customers(),         "Table", "Table", true},
+                {"Disputes",        "StripePlus.Disputes",          StripePlus.Disputes(),          "Table", "Table", true},
+                {"Events",          "StripePlus.Events",            StripePlus.Events(),            "Table", "Table", true},
+                {"Payouts",         "StripePlus.Payouts",           StripePlus.Payouts(),           "Table", "Table", true},
+                {"Refunds",         "StripePlus.Refunds",           StripePlus.Refunds(),           "Table", "Table", true}
+            }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+NavTableSubscriptions = () as table => 
+    let
+        objects = #table(
+            {
+                "Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
+                {"Coupons",         "StripePlus.Coupons",       StripePlus.Coupons(),       "Table", "Table", true},
+                {"Invoices",        "StripePlus.Invoices",      StripePlus.Invoices(),      "Table", "Table", true},
+                {"InvoiceItems",    "StripePlus.InvoiceItems",  StripePlus.InvoiceItems(),  "Table", "Table", true},
+                {"Plans",           "StripePlus.Plans",         StripePlus.Plans(),         "Table", "Table", true},
+                {"Subscriptions",   "StripePlus.Subscriptions", StripePlus.Subscriptions(), "Table", "Table", true}
+            }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+NavTableRelay = () as table => 
+    let
+        objects = #table(
+            {"Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
+                {"Orders",      "StripePlus.Orders",    StripePlus.Orders(),    "Table", "Table", true},
+                {"Products",    "StripePlus.Products",  StripePlus.Products(),  "Table", "Table", true},
+                {"Returns",     "StripePlus.Returns",   StripePlus.Returns(),   "Table", "Table", true},
+                {"SKUs",        "StripePlus.SKUs",      StripePlus.SKUs(),      "Table", "Table", true}
+            }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;
+
+NavTableAccount = () as table => 
+    let
+        objects = #table(
+            {"Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
+            }),
+        NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
+    in
+        NavTable;    
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                      STRIPE CORE RESOURCES API
+///////////////////////////////////////////////////////////////////////////////////////////////////
+[DataSource.Kind="StripePlus"]
+shared StripePlus.BalanceHistory = () =>
+    let
+        columns = {"id", "object", "amount", "available_on", "created", "currency", "description", "exchange_rate", "fee", "fee_details", "net", "source", "status", "type"},
+        url = "https://api.stripe.com/v1/balance/history?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = Table.TransformColumnTypes(Table, {{ "amount", type number}, {"created", type number}, {"exchange_rate", type number}, {"fee", type number}, {"net", type number}}),
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table,
+        CreatedAvailableOn = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "available_on") else Table
+    in
+        CreatedAvailableOn;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Charges = () =>
+    let
+        columns = {"id", "object", "amount", "amount_refunded", "application", "application_fee", "balance_transaction", "captured", "created", "currency", "customer", "description", "destination", "dispute", "failure_code", "failure_message", "fraud_details", "invoice", "livemode", "metadata", "on_behalf_of", "order", "outcome", "paid", "receipt_email", "receipt_number", "refunded", "refunds", "review", "shipping", "source", "source_transfer", "statement_descriptor", "status", "transfer", "transfer_group"},
+        url = "https://api.stripe.com/v1/charges?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{ "amount", type number}, {"amount_refunded", type number}, {"captured", type logical}, {"created", type number}, {"livemode", type logical}, {"paid", type logical}, {"refunded", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Customers = () =>
+    let
+        columns = {"id", "object", "account_balance", "created", "currency", "default_source", "delinquent", "description", "discount", "email", "livemode", "metadata", "shipping", "sources", "subscriptions"},
+        url = "https://api.stripe.com/v1/customers?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{ "account_balance", type number}, {"created", type number}, {"delinquent", type logical}, {"livemode", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Disputes = () =>
+    let
+        url = "https://api.stripe.com/v1/disputes?limit=100",
+	    Table = StripePlus.PagedTable(url, {"id", "object", "amount", "balance_transactions", "charge", "created", "currency", "evidence", "evidence_details", "livemode", "metadata", "reason", "status"}),
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{ "amount", type number}, {"created", type number}, {"is_charge_refundable", type logical}, {"livemode", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Events = () =>
+    let
+        url = "https://api.stripe.com/v1/events?limit=100",
+	    Table = StripePlus.PagedTable(url, {"id", "object", "api_version", "created", "data", "livemode", "pending_webhooks", "request", "type"}),
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"created", type number}, {"pending_webhooks", type number}, {"livemode", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Payouts = () =>
+    let
+        url = "https://api.stripe.com/v1/payouts?limit=100",
+	    Table = StripePlus.PagedTable(url, {"id", "object", "amount", "arrival_date", "automatic", "balance_transaction", "created", "currency", "description", "destination", "failure_balance_transaction", "failure_code", "failure_message", "livemode", "metadata", "method", "source_type", "statement_descriptor", "status", "type"}),
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"arrival_date", type number}, {"automatic", type logical}, {"created", type number}}) else Table,
+        ArrivalDateConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "arrival_date") else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(ArrivalDateConverted, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Refunds = () =>
+    let
+        url = "https://api.stripe.com/v1/refunds?limit=100",
+	    Table = StripePlus.PagedTable(url, {"id", "object", "amount", "balance_transaction", "charge", "created", "currency", "failure_balance_transaction", "failure_reason", "metadata", "reason", "receipt_number", "status"}),
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"created", type number}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                      STRIPE SUBSCRIPTIONS API
+///////////////////////////////////////////////////////////////////////////////////////////////////
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Coupons = () =>
+    let
+        columns = {"id", "object", "amount_off", "created", "charge", "currency", "duration", "duration_in_months", "livemode", "max_redemptions", "metadata", "percent_off", "redeem_by", "times_redeemed", "valid"},
+        url = "https://api.stripe.com/v1/coupons?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount_off", type number}, {"created", type number}, {"duration_in_months", type number}, {"livemode", type logical}, {"max_redemptions", type number}, {"percent_off", type number}, {"redeem_by", type number}, {"times_redeemed", type number}, {"valid", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table,
+        RedeemByConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "redeem_by") else Table
+    in
+        RedeemByConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Invoices = () =>
+    let
+        columns = {"id", "object", "amount_due", "application_fee", "attempt_count", "attempted", "billing", "charge", "closed", "customer", "date", "description", "discount", "due_date", "ending_balance", "forgiven", "lines", "livemode", "metadata", "next_payment_attempt", "number", "paid", "period_end", "period_start", "receipt_number", "starting_balance", "statement_descriptor", "subscription", "subscription_proration_date", "subtotal", "tax", "tax_percent", "total", "webhooks_delivered_at"},
+        url = "https://api.stripe.com/v1/invoices?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount_due", type number}, {"application_fee", type number}, {"attempt_count", type number}, {"attempted", type logical}, {"closed", type logical}, {"date", type number}, {"due_date", type number}, {"ending_balance", type number}, {"forgiven", type logical}, {"livemode", type logical}, {"next_payment_attempt", type number}, {"paid", type logical}, {"period_end", type number}, {"period_start", type number}, {"starting_balance", type number}, {"subscription_proration_date", type number}, {"subtotal", type number}, {"tax_percent", type number}, {"total", type number}, {"webhooks_delivered_at", type number}}) else Table,
+        DateConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "date") else Table,
+        DueDateConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(DateConverted, "due_date") else Table,
+        NextPaymentAttemptConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(DueDateConverted, "next_payment_attempt") else Table,
+        PeriodEndConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(NextPaymentAttemptConverted, "period_end") else Table,
+        PeriodStartConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(PeriodEndConverted, "period_start") else Table,
+        WebhooksDeliveredAtConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(PeriodStartConverted, "period_start") else Table,
+        SubscriptionProrationDateConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(WebhooksDeliveredAtConverted, "subscription_proration_date") else Table
+    in
+        SubscriptionProrationDateConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.InvoiceItems = () =>
+    let
+        columns = {"id", "object", "amount", "currency", "customer", "date", "description", "discountable", "invoice", "livemode", "metadata", "period", "plan", "proration", "quantity", "subscription", "subscription_item"},
+        url = "https://api.stripe.com/v1/invoiceitems?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"date", type number}, {"discountable", type logical}, {"livemode", type logical}, {"proration", type logical}, {"quantity", type number}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "date") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Plans = () =>
+    let
+        columns = {"id", "object", "amount", "created", "currency", "interval", "interval_count", "livemode", "metadata", "name", "statement_descriptor"},
+        url = "https://api.stripe.com/v1/plans?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"created", type number}, {"interval_count", type number}, {"livemode", type logical}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table
+    in
+        CreatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Subscriptions = () =>
+    let
+        columns = {"id", "object", "application_fee_percent", "billing", "cancel_at_period_end", "canceled_at", "created", "current_period_end", "current_period_start", "customer", "days_until_due", "discount", "ended_at", "items", "livemode", "metadata", "plan", "quantity", "start", "status", "tax_percent", "trial_end", "trial_start"},
+        url = "https://api.stripe.com/v1/subscriptions?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"application_fee_percent", type number}, {"cancel_at_period_end", type logical}, {"canceled_at", type number}, {"created", type number}, {"current_period_end", type number}, {"current_period_start", type number}, {"days_until_due", type number}, {"ended_at", type number}, {"livemode", type logical}, {"quantity", type number}, {"start", type number}, {"tax_percent", type number}, {"trial_end", type number}, {"trial_start", type number}}) else Table,
+        CanceledAtConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "canceled_at") else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CanceledAtConverted, "created") else Table,
+        CurrentPeriodEndConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "current_period_end") else Table,
+        CurrentPeriodStartConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CurrentPeriodEndConverted, "current_period_start") else Table,
+        EndedAtConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CurrentPeriodStartConverted, "ended_at") else Table,
+        StartConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(EndedAtConverted, "start") else Table,
+        TrialEndConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(StartConverted, "trial_end") else Table,
+        TrialStartConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TrialEndConverted, "trial_start") else Table
+    in
+        TrialStartConverted;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                      STRIPE RELAY API
+///////////////////////////////////////////////////////////////////////////////////////////////////
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Orders = () =>
+    let
+        columns = {"id", "object", "amount", "amount_returned", "application", "application_fee", "charge", "created", "currency", "customer", "email", "external_coupon_code", "items", "livemode", "metadata", "returns", "selected_shipping_method", "shipping", "shipping_methods", "status", "status_transitions", "updated", "upstream_id"},
+        url = "https://api.stripe.com/v1/orders?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"amount_returned", type number}, {"application_fee", type number}, {"created", type number}, {"livemode", type logical}, {"updated", type number}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table,
+        UpdatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "updated") else Table
+    in
+        UpdatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Products = () =>
+    let
+        columns = {"id", "object", "active", "attributes", "caption", "created", "deactivate_on", "description", "images", "livemode", "metadata", "name","package_dimensions", "shippable", "skus", "updated", "url"},
+        url = "https://api.stripe.com/v1/products?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"active", type logical}, {"created", type number}, {"livemode", type logical}, {"shippable", type logical},{"updated", type number} }) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table,
+        UpdatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "updated") else Table
+    in
+        UpdatedConverted;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Returns = () =>
+    let
+        columns = {"id", "object", "amount", "currency", "items", "livemode", "order", "refund"},
+        url = "https://api.stripe.com/v1/order_returns?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"amount", type number}, {"created", type number}, {"livemode", type logical}}) else Table
+    in
+        TableTyped;
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.SKUs = () =>
+    let
+        columns = {"id", "object", "active", "attributes", "created", "currency", "image", "inventory","livemode","metadata","package_dimensions","price","product","updated"},
+        url = "https://api.stripe.com/v1/skus?limit=100",
+	    TableOrEmpty = StripePlus.PagedTable(url, columns),
+        Table = if Table.IsEmpty(TableOrEmpty) then #table(columns, {}) else TableOrEmpty,
+        TableTyped = if not Table.IsEmpty(Table) then Table.TransformColumnTypes(Table, {{"active", type logical}, {"created", type number}, {"livemode", type logical},{"price", type number},{"updated", type number}}) else Table,
+        CreatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(TableTyped, "created") else Table,
+        UpdatedConverted = if not Table.IsEmpty(Table) then ConvertUnixToDateTime(CreatedConverted, "updated") else Table
+    in
+        UpdatedConverted;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//                                      DATA TOOLS
+///////////////////////////////////////////////////////////////////////////////////////////////////
+StripePlus.GetPageFromAPI = (url as text, columns as list) =>
+    let
+        t = Diagnostics.Trace(TraceLevel.Information, "TextValueFromNumber", () => Text.From(123), true),
+
+        content = Web.Contents(url),
+        source = Json.Document(content),
+        input = Record.ToTable(source),
+
+        customerList = input{1}[Value],
+        moreData = input{2}[Value],
+        startingFrom = if(moreData = true) then List.Last(customerList)[id] else null,
+
+        table = Table.FromList(input{1}[Value], Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+        customers = if(not Table.IsEmpty(table)) then Table.ExpandRecordColumn(table, "Column1", columns) else null
+    in
+        customers meta [Start=startingFrom];
+
+StripePlus.PagedTable = (url as text, columns as list) => Table.GenerateByPage((previous) =>
+    let
+        startingFrom = if (previous <> null) then Value.Metadata(previous)[Start] else null,
+        currentUrl = if (startingFrom <> null) then startingFrom else url,
+        current = if (previous <> null and startingFrom = null) then null else StripePlus.GetPageFromAPI(currentUrl, columns),
+        link = if (current <> null and  Value.Metadata(current)[currentUrl] <> null) then Text.Combine({url, "&starting_after=", Value.Metadata(current)[Start]}) else null
+    in
+        current meta [Start=startingFrom]);
+
+Table.GenerateByPage = (getNextPage as function) as table =>
+    let
+        listOfPages = List.Generate(
+            () => getNextPage(null),
+            (lastPage) => lastPage <> null,
+            (lastPage) => getNextPage(lastPage)
+        ),
+        tableOfPages = Table.FromList(listOfPages, Splitter.SplitByNothing(), {"Column1"}),
+        firstRow = tableOfPages{0}?
+    in
+        if (firstRow = null) then
+            Table.FromRows({})
+        else
+            Value.ReplaceType(
+                Table.ExpandTableColumn(tableOfPages, "Column1", Table.ColumnNames(firstRow[Column1])),
+                Value.Type(firstRow[Column1])
+            );
+
+ConvertUnixToDateTime = (TableTyped as table, unixColumn as text) => 
+    let 
+        AddCreatedAsDateTime = Table.AddColumn(TableTyped, "temp_1", each try #datetime(1970, 1, 1, 0, 0, 0) + #duration(0, 0, 0, Record.Field(_, unixColumn)) otherwise null),
+        Typed = Table.TransformColumnTypes(AddCreatedAsDateTime,{{"temp_1", type datetime}}),
+        RemovedOriginal = Table.RemoveColumns(Typed,{unixColumn}),
+        Converted = Table.RenameColumns(RemovedOriginal,{{"temp_1", unixColumn}})
+    in
+        Converted;
+
+//// Get the full example on how to create a Navigation Table from Microsoft here > https://github.com/Microsoft/DataConnectors/tree/master/samples/NavigationTable
+Table.ToNavigationTable = (
+    table as table,
+    keyColumns as list,
+    nameColumn as text,
+    dataColumn as text,
+    itemKindColumn as text,
+    itemNameColumn as text,
+    isLeafColumn as text
+) as table =>
+    let
+        tableType = Value.Type(table),
+        newTableType = Type.AddTableKey(tableType, keyColumns, true) meta 
+        [
+            NavigationTable.NameColumn = nameColumn, 
+            NavigationTable.DataColumn = dataColumn,
+            NavigationTable.ItemKindColumn = itemKindColumn, 
+            Preview.DelayColumn = itemNameColumn, 
+            NavigationTable.IsLeafColumn = isLeafColumn
+        ],
+        navigationTable = Value.ReplaceType(table, newTableType)
+    in
+        navigationTable;
+
+//// Function to check if the text string exists or if it should grab the next string
+//// Get the full example on why this function was created from Microsoft here > https://github.com/Microsoft/DataConnectors/blob/fe8cb91f694e476bd70c10b9295a815d7bfc42d7/samples/MyGraph/README.md
+
+Value.IfNull = (a, b) => if a <> null then a else b;
+
+//// Function to concatenate all the scopes and create a string for them
+//// Get the full example on why this function was created from Microsoft here > https://github.com/Microsoft/DataConnectors/blob/fe8cb91f694e476bd70c10b9295a815d7bfc42d7/samples/MyGraph/README.md
+GetScopeString = (scopes as list, optional scopePrefix as text) as text =>
+    let
+        prefix = Value.IfNull(scopePrefix, ""),
+        addPrefix = List.Transform(scopes, each prefix & _),
+        asText = Text.Combine(addPrefix, " ")
+    in
+        asText;
+
+//// Helper function to create sample tables
+SampleTable = ( OutputTable as table) as text =>
+
+let
+    TableToTransform = Table.FirstN(OutputTable,2),        
+    Headers = Text.Combine(List.Transform(Table.ColumnNames(TableToTransform), each """"""&Text.From(_)&""""""), ","),
+    Data = Text.Combine(List.Transform(List.Transform(Table.ToRows(TableToTransform), each Text.Combine(List.Transform(_, (_)=> """"""&Text.From(_)&""""""), ",")), each "{"&_&"}"), ","),
+    TableFormat = "#table({"&Headers&"},{"&Data&"})"
+in
+    TableFormat;
