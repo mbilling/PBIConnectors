@@ -32,6 +32,7 @@ This is how it looks in Power BI:
 
 
 ## How to use the custom connectors
+(WORK IN PROGRESS)
 
 The code for the 3 connectors has to be compiled into a .mez file. File ending will change to .pqx according to [Microsoft custom connector repo][ms_repo]
 
