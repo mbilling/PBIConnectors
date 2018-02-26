@@ -9,6 +9,12 @@ Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "Stripe", "Stripe\Stripe.mpr
 EndProject
 Project("{4DF76451-A46A-4C0B-BE03-459FAAFA07E6}") = "FacebookPages", "FacebookPages\FacebookPages.mproj", "{0C0070FE-5B33-4620-BE2C-86B47DD57576}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C3E33BD8-2DA1-4FB2-918C-A2B01DED3FC9}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
