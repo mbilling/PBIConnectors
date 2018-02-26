@@ -16,10 +16,7 @@ windowHeight = 1024;
 //// See https://developer.linkedin.com/docs/oauth2 for scopes 
 scope_prefix = "";
 scopes = {
-	"r_basicprofile", 
-	"r_emailaddress",  
-	"rw_company_admin",
-	"w_share"
+	"rw_company_admin"
 };
 
 LinkedIn = [
