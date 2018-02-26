@@ -6,8 +6,6 @@ The Microsoft Power BI custom connector support-project
 * [LinkedIn](#the-linkedin-connector)
 * [Facebook Pages Insight](#the-facebook-pages-insight-connector)
 
-## How to use the custom connectors
-
 ## The Stripe Connector
 
 The "original" Stripe connector does not return all the data it should so here is a connector that does it right.
@@ -24,9 +22,20 @@ We would prefer the raw hit-level data behind each aggregated date but that is n
 
 ## The Facebook Pages Insight Connector
 
-This connector is focused on accessing page insights using the pages insights API: ([fb_pages_insights])
+This connector is focused on accessing page insights using the pages insights API: [fb_pages_insights]
+
 The built-in Facebook connector provides access to Facebook user profile, not pages or campaign manager ads.
+
+This is how it looks in Power BI
+
+[fb_pages_insights_navigator_shot]
+
+
+## How to use the custom connectors
+
+
 
 
 [fb_pages_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
-[fb_pages_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/tree/master/img/fb_pages_insights_navigator_shot.png
+[fb_pages_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG
+
