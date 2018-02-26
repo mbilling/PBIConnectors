@@ -33,9 +33,9 @@ This is how it looks in Power BI:
 
 ## How to use the custom connectors
 
-The code for the 3 connectors has to be compiled into a .mez file. File ending will change to .pqx according to [Microsoft custom connector repo][https://github.com/Microsoft/DataConnectors].
+The code for the 3 connectors has to be compiled into a .mez file. File ending will change to .pqx according to [Microsoft custom connector repo][ms_repo]
 
 
 [fb_pages_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
 [fb_pages_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG
-
+[ms_repo]: https://github.com/Microsoft/DataConnectors
