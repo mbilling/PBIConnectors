@@ -16,8 +16,10 @@ To build the connector you need to create a Linked In App to get an OAuth2 key a
 [Create a the app here][li-api]
 
 In LinkedIn\WebApp.json set Client Id and Client Secret
+```
       "client_id": "[Client ID]",
       "client_secret": "[Client Secret]",
+```
 
 The connector is an interface to historical endpoints of linkedin Manage Company Pages endpoints
 
@@ -37,8 +39,10 @@ To build the connector you need to create a Facebook App to get an OAuth2 key an
 [Create a the app here][fb-api]
 
 In FacebookPages\WebApp.json set Client Id and Client Secret
+```
       "client_id": "[App ID]",
       "client_secret": "[App Secret]",
+```
 
 This connector is focused on accessing page insights using the pages insights API: [Facebook Pages Insight][fb_pages_insights]
 
