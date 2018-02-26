@@ -28,7 +28,7 @@ The built-in Facebook connector provides access to Facebook user profile, not pa
 
 This is how it looks in Power BI
 
-[fb_pages_insights_navigator_shot]
+<img src="https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG" alt="The Facebook Pages Insight Connector in Power BI" title="The Facebook Pages Insight Connector in Power BI"/>
 
 
 ## How to use the custom connectors
