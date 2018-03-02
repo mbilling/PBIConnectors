@@ -15,7 +15,7 @@ windowHeight = 1024;
 baseUrl = "https://graph.facebook.com/v2.12/";
 scope_prefix = "";
 scopes = {
-	"manage_pages", "instagram_basic", "instagram_manage_insights", "instagram_manage_comments"
+	"manage_pages", "instagram_basic", "instagram_manage_insights"
 };
 
 Instagram = [
