@@ -87,7 +87,7 @@ FacebookPages.Publish = [
     Beta = false,
     Category = "Other",
     ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
-    LearnMoreUrl = "https://powerbi.microsoft.com/",
+    LearnMoreUrl = "https://github.com/mbilling/pbiconnectors",
     SourceImage = FacebookPages.Icons,
     SourceTypeImage = FacebookPages.Icons
 ];

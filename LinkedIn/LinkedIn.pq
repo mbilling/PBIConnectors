@@ -90,7 +90,7 @@ LinkedIn.Publish = [
     Beta = true,
     Category = "Other",
     ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
-    LearnMoreUrl = "https://www.scitylana.com/pbi_connectors",
+    LearnMoreUrl = "https://github.com/mbilling/pbiconnectors",
     SourceImage = LinkedIn.Icons,
     SourceTypeImage = LinkedIn.Icons
 ];
