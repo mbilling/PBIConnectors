@@ -5,6 +5,7 @@ The Microsoft Power BI custom connector support-project
 * [Stripe](#the-stripe-connector)
 * [LinkedIn](#the-linkedin-connector)
 * [Facebook Pages Insight](#the-facebook-pages-insight-connector)
+* [Instagram](#the-instagram-connector)
 
 ## The Stripe Connector
 
@@ -44,13 +45,33 @@ In FacebookPages\WebApp.json set Client Id and Client Secret
       "client_secret": "[App Secret]",
 ```
 
-This connector is focused on accessing page insights using the pages insights API: [Facebook Pages Insight][fb_pages_insights]
+This connector is focused on accessing page insights using the pages insights API: [Facebook Pages Insights][fb_pages_insights]
 
 The built-in Facebook connector provides access to Facebook user profile, not pages or campaign manager ads.
 
 This is how it looks in Power BI:
 
 <img src="https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG" alt="The Facebook Pages Insight Connector in Power BI" title="The Facebook Pages Insight Connector in Power BI"/>
+
+
+## The Instagram Connector
+
+To build the connector you need to create a Facebook/Instagram App to get an OAuth2 key and secret. 
+You need to have your Instagram Account conected to your Facebook Page, [read more here][instagram-info]
+
+[Create a the app here][fb-api]
+
+In Instagram\WebApp.json set Client Id and Client Secret
+```
+      "client_id": "[App ID]",
+      "client_secret": "[App Secret]",
+```
+
+This connector is focused on accessing page insights using the Instagram insights API: [Instagram Insights][instagram-api]
+
+This is how it looks in Power BI:
+
+<img src="https://github.com/mbilling/PBIConnectors/blob/master/img/instagram_insights_navigator_shot.PNG" alt="The Instagram Insight Connector in Power BI" title="The Instagram Insight Connector in Power BI"/>
 
 
 ## How to use the custom connectors
@@ -66,6 +87,7 @@ Using the connectors
 
 ## Related repos
 [Facebook Ads Connector][hugo]
+
 [Youtube Connector][miguel]
 
 
@@ -76,3 +98,5 @@ Using the connectors
 [miguel]: https://github.com/migueesc123/YoutubeAnalytics
 [li-api]: https://www.linkedin.com/developer/apps
 [fb-api]: https://developers.facebook.com/apps/
+[instagram-api]: https://developers.facebook.com/docs/instagram-api/reference/user/insights
+[instagram-info]: https://help.instagram.com/356902681064399
