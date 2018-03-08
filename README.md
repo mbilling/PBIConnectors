@@ -1,10 +1,11 @@
-# Microsoft Power BI Custom Connectors
+# Microsoft Power BI Custom Data Connectors
 The Microsoft Power BI custom connector support-project
 
-## Available custom connectors
+## Available custom data connectors
 * [Stripe](#the-stripe-connector)
 * [LinkedIn](#the-linkedin-connector)
 * [Facebook Pages Insight](#the-facebook-pages-insight-connector)
+* [Facebook Ads Insight](#the-facebook-ads-insight-connector) NEW
 * [Instagram](#the-instagram-connector)
 
 ## The Stripe Connector
@@ -47,11 +48,31 @@ In FacebookPages\WebApp.json set Client Id and Client Secret
 
 This connector is focused on accessing page insights using the pages insights API: [Facebook Pages Insights][fb_pages_insights]
 
-The built-in Facebook connector provides access to Facebook user profile, not pages or campaign manager ads.
+The built-in Facebook connector provides access to Facebook user profile, not pages or ads statistics.
 
 This is how it looks in Power BI:
 
 <img src="https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG" alt="The Facebook Pages Insight Connector in Power BI" title="The Facebook Pages Insight Connector in Power BI"/>
+
+
+## The Facebook Ads Insight Connector
+
+To build the connector you need to create a Facebook App to get an OAuth2 key and secret.
+[Create a the app here][fb-api]
+
+In FacebookAds\WebApp.json set Client Id and Client Secret
+```
+      "client_id": "[App ID]",
+      "client_secret": "[App Secret]",
+```
+
+This connector is focused on accessing page insights using the ads insights API: [Facebook Ads Insights][fb_ads_insights]
+
+The built-in Facebook connector provides access to Facebook user profile, not pages or ads statistics.
+
+This is how it looks in Power BI:
+
+<img src="https://github.com/mbilling/PBIConnectors/blob/master/img/fb_ads_insights_navigator_shot.PNG" alt="The Facebook Ads Insight Connector in Power BI" title="The Facebook Ads Insight Connector in Power BI"/>
 
 
 ## The Instagram Connector
@@ -100,3 +121,5 @@ Using the connectors
 [fb-api]: https://developers.facebook.com/apps/
 [instagram-api]: https://developers.facebook.com/docs/instagram-api/reference/user/insights
 [instagram-info]: https://help.instagram.com/356902681064399
+[fb_ads_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
+[fb_ads_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG
