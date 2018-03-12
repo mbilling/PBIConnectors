@@ -15,7 +15,7 @@ StripePlus = [
 
 // Data Source UI publishing description
 StripePlus.Publish = [
-    Beta = true,
+    Beta = false,
     Category = "Other",
     ButtonText = { Extension.LoadString("ButtonTitle"), Extension.LoadString("ButtonHelp") },
     LearnMoreUrl = "https://github.com/mbilling/pbiconnectors",
