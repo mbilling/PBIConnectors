@@ -158,7 +158,7 @@ historicalStatusUpdateStatistics = ()  =>
                 Json.Document(
                     Web.Contents(
                         Text.Combine({
-                            "https://api.linkedin.com/v1/companies/", 
+                            "https://api.linkedin.com/v1/companies/",
                             Number.ToText([id]), 
                             "/historical-status-update-statistics?format=json&start-timestamp=",
                             Number.ToText(Int64.From(Duration.TotalSeconds(Date.AddMonths(DateTime.Date(DateTime.LocalNow()),-14)  - Date.FromText("1970-01-01")) * 1000)),
@@ -177,8 +177,8 @@ historicalStatusUpdateStatistics = ()  =>
     #"Ændret type" = Table.TransformColumnTypes(#"Udvidet Brugerdefineret.Value1",{{"Brugerdefineret.Value.time", type number}}),
     #"Tilføjet brugerdefineret1" = Table.AddColumn(#"Ændret type", "date", each #datetime(1970, 1, 1, 0, 0, 0) + #duration(0, 0, 0, [Brugerdefineret.Value.time]/1000)),
     #"Fjernede kolonner1" = Table.RemoveColumns(#"Tilføjet brugerdefineret1",{"Brugerdefineret.Value.time"}),
-    #"Omdøbte kolonner" = Table.RenameColumns(#"Fjernede kolonner1",{{"Brugerdefineret.Value.impressionCount", "impressionCount"}}),
-    #"Ændret type1" = Table.TransformColumnTypes(#"Omdøbte kolonner",{{"impressionCount", Int64.Type}, {"date", type date}})
+    #"Omdøbte kolonner" = Table.RenameColumns(#"Fjernede kolonner1",{{"Brugerdefineret.Value.impressionCount", "statusUpdates"}}),
+    #"Ændret type1" = Table.TransformColumnTypes(#"Omdøbte kolonner",{{"statusUpdates", Int64.Type}, {"date", type date}})
 
     in
         #"Ændret type1";
@@ -229,18 +229,27 @@ historicalFollowStatistics = ()  =>
     ),
 
     #"Tilføjet brugerdefineret" = Table.AddColumn(AddedStats, "Brugerdefineret", each [stats]{1}),
-    #"Udvidet Brugerdefineret" = Table.ExpandRecordColumn(#"Tilføjet brugerdefineret", "Brugerdefineret", {"Value"}, {"Brugerdefineret.Value"}),
+    #"Removed Columns" = Table.RemoveColumns(#"Tilføjet brugerdefineret",{"stats"}),
+    #"Expanded Brugerdefineret" = Table.ExpandRecordColumn(#"Removed Columns", "Brugerdefineret", {"Value"}, {"Value"}),
+    #"Expanded Value" = Table.ExpandListColumn(#"Expanded Brugerdefineret", "Value"),
+    #"Expanded Value1" = Table.ExpandRecordColumn(#"Expanded Value", "Value", {"organicFollowerCount", "paidFollowerCount", "time", "totalFollowerCount"}, {"organicFollowerCount", "paidFollowerCount", "time", "totalFollowerCount"}),
+    #"Tilføjet brugerdefineret1" = Table.AddColumn( #"Expanded Value1", "date", each #datetime(1970, 1, 1, 0, 0, 0) + #duration(0, 0, 0, [time]/1000)),
+    #"Changed Type" = Table.TransformColumnTypes(#"Tilføjet brugerdefineret1",{{"id", type text}, {"name", type text}, {"organicFollowerCount", Int64.Type}, {"paidFollowerCount", Int64.Type}, {"totalFollowerCount", Int64.Type}}),
+    #"Removed Columns1" = Table.RemoveColumns(#"Changed Type",{"time"}),
+    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns1",{{"date", type datetime}})
+
+/*    #"Udvidet Brugerdefineret" = Table.ExpandRecordColumn(#"Tilføjet brugerdefineret", "Brugerdefineret", {"Value"}, {"Brugerdefineret.Value"}),
     #"Udvidet Brugerdefineret.Value" = Table.ExpandListColumn(#"Udvidet Brugerdefineret", "Brugerdefineret.Value"),
     #"Fjernede kolonner" = Table.RemoveColumns(#"Udvidet Brugerdefineret.Value",{"stats"}),
     #"Udvidet Brugerdefineret.Value1" = Table.ExpandRecordColumn(#"Fjernede kolonner", "Brugerdefineret.Value", {"impressionCount", "time"}, {"Brugerdefineret.Value.impressionCount", "Brugerdefineret.Value.time"}),
     #"Ændret type" = Table.TransformColumnTypes(#"Udvidet Brugerdefineret.Value1",{{"Brugerdefineret.Value.time", type number}}),
     #"Tilføjet brugerdefineret1" = Table.AddColumn(#"Ændret type", "date", each #datetime(1970, 1, 1, 0, 0, 0) + #duration(0, 0, 0, [Brugerdefineret.Value.time]/1000)),
     #"Fjernede kolonner1" = Table.RemoveColumns(#"Tilføjet brugerdefineret1",{"Brugerdefineret.Value.time"}),
-    #"Omdøbte kolonner" = Table.RenameColumns(#"Fjernede kolonner1",{{"Brugerdefineret.Value.impressionCount", "impressionCount"}}),
-    #"Ændret type1" = Table.TransformColumnTypes(#"Omdøbte kolonner",{{"impressionCount", Int64.Type}, {"date", type date}})
-
+    #"Omdøbte kolonner" = Table.RenameColumns(#"Fjernede kolonner1",{{"Brugerdefineret.Value.impressionCount", "follows"}}),
+    #"Ændret type1" = Table.TransformColumnTypes(#"Omdøbte kolonner",{{"follows", Int64.Type}, {"date", type date}})
+*/
     in
-        #"Ændret type1";
+        #"Changed Type1";
 
 
 

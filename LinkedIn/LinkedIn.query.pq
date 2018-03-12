@@ -1,1 +1,1 @@
-﻿LinkedIn.Navigation()
+﻿LinkedIn.historicalStatusUpdateStatistics()
