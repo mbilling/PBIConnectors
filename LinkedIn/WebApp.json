@@ -2,7 +2,8 @@
    "web":{
       "client_id": "",
       "client_secret": "",
-      "authorize_uri": "https://www.facebook.com/v2.11/dialog/oauth",
-      "token_uri": "https://graph.facebook.com/v2.11/oauth/access_token"
+      "auth_uri": "https://www.linkedin.com/oauth/v2/authorization",
+      "token_uri": "https://www.linkedin.com/oauth/v2/accessToken",
+      "redirect_uris": ["https://oauth.powerbi.com/views/oauthredirect.html"]
    }
 }
