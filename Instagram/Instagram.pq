@@ -174,7 +174,7 @@ GetPageInsights = (page as record, months as number) =>
         #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"end_time", type date}}),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"end_time", "date"}}),
         #"Removed Column" = Table.RemoveColumns(#"Renamed to date", {"period"}),
-        table = Table.TransformColumnTypes(#"Removed Column",{{"impressions", Int64.Type}, {"reach", Int64.Type}, {"profile_views", Int64.Type}, {"website_clicks", Int64.Type}, {"get_directions_clicks", Int64.Type}, {"text_message_clicks", Int64.Type}, {"phone_call_clicks", Int64.Type}, {"email_contacts", Int64.Type}, {"follower_count", Int64.Type}, {"period", type text}})
+        table = Table.TransformColumnTypes(#"Removed Column",{{"impressions", Int64.Type}, {"reach", Int64.Type}, {"profile_views", Int64.Type}, {"website_clicks", Int64.Type}, {"get_directions_clicks", Int64.Type}, {"text_message_clicks", Int64.Type}, {"phone_call_clicks", Int64.Type}, {"email_contacts", Int64.Type}, {"follower_count", Int64.Type}})
     in
         table;
 
