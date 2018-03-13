@@ -8,6 +8,9 @@ The Microsoft Power BI custom connector support-project
 * [Facebook Ads Insight](#the-facebook-ads-insight-connector) NEW
 * [Instagram](#the-instagram-connector)
 
+## Download ready-to-use packages
+You can download ready-to-use .mez files from SCITYLANA [here][sl-pbi-gallery].
+
 ## The Stripe Connector
 
 The "original" Stripe connector does not return all the data it should so here is a connector that does it right.
@@ -123,3 +126,4 @@ Using the connectors
 [instagram-info]: https://help.instagram.com/356902681064399
 [fb_ads_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
 [fb_ads_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG
+[sl-pbi-gallery]: https://try.scitylana.com/pbi-connector-gallery
