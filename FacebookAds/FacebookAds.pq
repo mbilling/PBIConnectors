@@ -121,13 +121,72 @@ shared FacebookAds.GetInsights = (adAccount as record) =>
     let
         objects = #table(
             {"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"},{
-            {"Ad Insights", "Ad Insights", FacebookAds.GetAllAdInsights(adAccount), "Table", "Table", true}
+            {"All Ad Insights", "All Ad Insights", FacebookAds.GetAllAds(adAccount), "Table", "Table", true},
+            {"Active Ad Insights", "Active Ad Insights", FacebookAds.GetAllActiveAds(adAccount), "Table", "Table", true}
         }),
         NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
         NavTable;
 
-shared FacebookAds.GetAllAdInsights = (adAccount as record) =>
+shared FacebookAds.GetAllAds = (adAccount as record) =>
+    let
+        access_token = Extension.CurrentCredential()[access_token],
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+
+        joined_response = List.Generate(
+            ()=> [result = null, query = seed], 
+            each [query] <> null, 
+            each [
+                result = Json.Document(Web.Contents([query])), 
+                query = try result[paging][next] otherwise null
+            ], 
+            each [result = [result], next_query = [query]]
+        ),
+
+        response = Table.FromList(List.Skip(joined_response, 1), Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+        #"Expanded Column1" = Table.ExpandRecordColumn(response, "Column1", {"result", "next_query"}, {"result", "next_query"}),
+        #"Removed Columns" = Table.RemoveColumns(#"Expanded Column1",{"next_query"}),
+        #"Expanded result" = Table.ExpandRecordColumn(#"Removed Columns", "result", {"data"}, {"data"}),
+        #"Expanded data" = Table.ExpandListColumn(#"Expanded result", "data"),
+        #"Expanded data1" = Table.ExpandRecordColumn(#"Expanded data", "data", {"name", "id"}, {"name", "id"}),
+        #"Removed Columns1" = Table.RemoveColumns(#"Expanded data1",{"name"}),
+        adIds = #"Removed Columns1"[id],
+
+        // List.Generator didn't work here - i spend to hours trying to decunstruct. Looked like a PQ/M error. Maybe I'll report it later
+        // Shifting to simple recursive setup, and i learned about the @ operator for self referencing function
+        getAdInsight = (query, result) =>
+            let
+                response = Json.Document(Web.Contents(query)),
+                newResult = List.Combine({result, response[data]}),
+                nextQuery = try response[paging][next] otherwise null
+            in
+                if nextQuery <> null then @getAdInsight(nextQuery, newResult) else newResult,
+
+        list = List.Accumulate(
+            adIds, 
+            {},
+            (state, adId) => List.Combine(
+                { 
+                  state, 
+                  getAdInsight(baseUrl & adId & "/insights?" & Uri.BuildQueryString([access_token=access_token,fields="ad_id,campaign_id,adset_id,ad_name,account_id,adset_name,campaign_name,total_actions,reach,impressions,frequency,unique_clicks,spend,unique_inline_link_clicks,unique_social_clicks,cpc,cpm,call_to_action_clicks,clicks,account_currency,account_name,social_impressions,social_clicks,social_reach,social_spend,objective,inline_link_clicks,inline_post_engagement", level="ad", date_preset="lifetime", time_increment="1", limit="90"]), {})
+                }
+            )
+        ),
+
+        table = Table.FromList(list, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+        expanded = Table.ExpandRecordColumn(table, "Column1", {"ad_id", "campaign_id", "adset_id", "ad_name", "account_id", "adset_name", "campaign_name", "total_actions", "reach", "impressions", "frequency", "unique_clicks", "spend", "unique_inline_link_clicks", "unique_social_clicks", "cpc", "cpm", "call_to_action_clicks", "clicks", "account_currency", "account_name", "social_impressions", "social_clicks", "social_reach", "social_spend", "objective", "inline_link_clicks", "inline_post_engagement", "date_start", "date_stop"}, {"ad_id", "campaign_id", "adset_id", "ad_name", "account_id", "adset_name", "campaign_name", "total_actions", "reach", "impressions", "frequency", "unique_clicks", "spend", "unique_inline_link_clicks", "unique_social_clicks", "cpc", "cpm", "call_to_action_clicks", "clicks", "account_currency", "account_name", "social_impressions", "social_clicks", "social_reach", "social_spend", "objective", "inline_link_clicks", "inline_post_engagement", "date_start", "date_stop"}),
+        tableTyped = Table.TransformColumnTypes(expanded, {{"ad_id", type text}, {"campaign_id", type text}, {"adset_id", type text}, {"ad_name", type text}, {"account_id", type text}, {"adset_name", type text}, {"campaign_name", type text}, {"account_name", type text}, {"objective", type text}, {"date_start", type date}, {"date_stop", type date}, {"total_actions", Int64.Type}, {"reach", Int64.Type}, {"impressions", Int64.Type}, {"unique_inline_link_clicks", Int64.Type}, {"unique_social_clicks", Int64.Type}, {"call_to_action_clicks", Int64.Type}, {"clicks", Int64.Type}, {"social_impressions", Int64.Type}, {"social_clicks", Int64.Type}, {"social_reach", Int64.Type}, {"inline_link_clicks", Int64.Type}, {"inline_post_engagement", Int64.Type}, {"frequency", type number}, {"spend", type number}, {"cpc", type number}, {"cpm", type number}, {"social_spend", type number}}),
+        tableWithDate = Table.RenameColumns(tableTyped, {{"date_start", "date"}}),
+        tableWithNoEndDate = Table.RemoveColumns(tableWithDate, {"date_stop"}),
+        tableWithDateFirst = Table.ReorderColumns(tableWithNoEndDate, {"date", "ad_id", "campaign_id", "adset_id", "ad_name", "account_id", "adset_name", "campaign_name", "total_actions", "reach", "impressions", "frequency", "unique_clicks", "spend", "unique_inline_link_clicks", "unique_social_clicks", "cpc", "cpm", "call_to_action_clicks", "clicks", "account_currency", "account_name", "social_impressions", "social_clicks", "social_reach", "social_spend", "objective", "inline_link_clicks", "inline_post_engagement"}),
+        tableWithFriendlyNames = Table.RenameColumns(tableWithDateFirst,{{"adset_name", "Adset Name"}, {"account_id", "Account ID"}, {"ad_name", "Ad Name"}, {"adset_id", "Adset ID"}, {"campaign_id", "Campaign ID"}, {"ad_id", "Ad ID"}, {"campaign_name", "Campaign Name"}, {"total_actions", "Total Actions"}, {"reach", "Reach"}, {"impressions", "Impressions"}, {"frequency", "Frequency"}, {"unique_clicks", "Unique Clicks"}, {"spend", "Spend"}, {"unique_inline_link_clicks", "Unique Inline Link  Clicks"}, {"unique_social_clicks", "Unique Social Clicks"}, {"cpc", "CPC"}, {"cpm", "CPM"}, {"call_to_action_clicks", "Call To Action Clicks"}, {"clicks", "Clicks"}, {"account_currency", "Account Currency"}, {"account_name", "Account Name"}, {"social_impressions", "Social Impressions"}, {"social_clicks", "Social Clicks"}, {"social_reach", "Social Reach"}, {"social_spend", "Social Spend"}, {"objective", "Objective"}, {"inline_link_clicks", "Inline Link Clicks"}, {"inline_post_engagement", "Inline Post Engagement"}})
+    in
+        tableWithFriendlyNames;
+
+
+
+
+shared FacebookAds.GetAllActiveAds = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
         seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name,effective_status"]),
@@ -166,7 +225,7 @@ shared FacebookAds.GetAllAdInsights = (adAccount as record) =>
 shared FacebookAds.GetAdInsights = (ad as record) =>
     let 
         access_token = Extension.CurrentCredential()[access_token],
-        insights = Web.Contents(baseUrl & ad[id] & "/insights?" & Uri.BuildQueryString([access_token=access_token,fields="ad_id,campaign_id,adset_id,ad_name,account_id,adset_name,campaign_name,total_actions,reach,impressions,frequency,unique_clicks,spend,unique_inline_link_clicks,unique_social_clicks,cpc,cpm,call_to_action_clicks,clicks,account_currency,account_name,social_impressions,social_clicks,social_reach,social_spend,objective,inline_link_clicks,inline_post_engagement", level="ad", date_preset="last_90d", time_increment="1"])),
+        insights = Web.Contents(baseUrl & ad[id] & "/insights?" & Uri.BuildQueryString([access_token=access_token,fields="ad_id,campaign_id,adset_id,ad_name,account_id,adset_name,campaign_name,total_actions,reach,impressions,frequency,unique_clicks,spend,unique_inline_link_clicks,unique_social_clicks,cpc,cpm,call_to_action_clicks,clicks,account_currency,account_name,social_impressions,social_clicks,social_reach,social_spend,objective,inline_link_clicks,inline_post_engagement", level="ad", date_preset="lifetime", time_increment="1"])),
         data = Json.Document(insights)[data],
         table = Table.FromRecords(data)
     in
