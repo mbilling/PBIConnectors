@@ -13,7 +13,11 @@ You can download ready-to-use .mez files from SCITYLANA [here][sl-pbi-gallery].
 
 ## The Stripe Connector
 
-The "original" Stripe connector does not return all the data it should so here is a connector that does it right.
+This connector should be used instead of the broken official connector.
+
+Here is a list of features that have been fixed:
+* Limited access API keys (the original connector only works with the master API key, which is REALLY bad when you want to publish a dashboard)
+* Fetching all rows data for all tables (the original connector doesn't handle paging correct)
 
 ## The LinkedIn Connector
 
