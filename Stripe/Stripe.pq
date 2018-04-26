@@ -47,11 +47,11 @@ NavigationType = type function () as table meta [
  Navigation = () =>
     let
         objects = #table(
-            {"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"},
+            {"Name",                "Key",                      "Data",                     "ItemKind", "ItemName", "IsLeaf"},
             {
-                {"Core Resources",  "NavTableCoreResources",    NavTableCoreResources(),    "Folder",    "Folder",    false},
-                {"Subscriptions",   "NavTableSubscriptions",    NavTableSubscriptions(),    "Folder",    "Folder",    false},
-                {"Relay",           "NavTableRelay",            NavTableRelay(),            "Folder",    "Folder",    false}
+                {"Core Resources",  "NavTableCoreResources",    NavTableCoreResources(),    "Folder",   "Folder",   false},
+                {"Subscriptions",   "NavTableSubscriptions",    NavTableSubscriptions(),    "Folder",   "Folder",   false},
+                {"Orders",          "NavTableOrders",           NavTableOrders(),           "Folder",   "Folder",   false}
             }),
             NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf") 
     in
@@ -61,14 +61,15 @@ NavTableCoreResources = () as table =>
     let
         objects = #table(
             {
-                "Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
-                {"Balance History", "StripePlus.BalanceHistory",    StripePlus.BalanceHistory(),    "Table", "Table", true},
-                {"Charges",         "StripePlus.Charges",           StripePlus.Charges(),           "Table", "Table", true},
-                {"Customers",       "StripePlus.Customers",         StripePlus.Customers(),         "Table", "Table", true},
-                {"Disputes",        "StripePlus.Disputes",          StripePlus.Disputes(),          "Table", "Table", true},
-                {"Events",          "StripePlus.Events",            StripePlus.Events(),            "Table", "Table", true},
-                {"Payouts",         "StripePlus.Payouts",           StripePlus.Payouts(),           "Table", "Table", true},
-                {"Refunds",         "StripePlus.Refunds",           StripePlus.Refunds(),           "Table", "Table", true}
+                "Name",             "Key",                          "Data",                         "ItemKind", "ItemName", "IsLeaf"},{
+                {"Balance History", "StripePlus.BalanceHistory",    StripePlus.BalanceHistory(),    "Table",    "Table",    true},
+                {"Charges",         "StripePlus.Charges",           StripePlus.Charges(),           "Table",    "Table",    true},
+                {"Customers",       "StripePlus.Customers",         StripePlus.Customers(),         "Table",    "Table",    true},
+                {"Disputes",        "StripePlus.Disputes",          StripePlus.Disputes(),          "Table",    "Table",    true},
+                {"Events",          "StripePlus.Events",            StripePlus.Events(),            "Table",    "Table",    true},
+                {"Payouts",         "StripePlus.Payouts",           StripePlus.Payouts(),           "Table",    "Table",    true},
+                {"Products",        "StripePlus.Products",          StripePlus.Products(),          "Table",    "Table",    true},
+                {"Refunds",         "StripePlus.Refunds",           StripePlus.Refunds(),           "Table",    "Table",    true}
             }),
         NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
@@ -78,23 +79,23 @@ NavTableSubscriptions = () as table =>
     let
         objects = #table(
             {
-                "Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
-                {"Coupons",         "StripePlus.Coupons",       StripePlus.Coupons(),       "Table", "Table", true},
-                {"Invoices",        "StripePlus.Invoices",      StripePlus.Invoices(),      "Table", "Table", true},
-                {"InvoiceItems",    "StripePlus.InvoiceItems",  StripePlus.InvoiceItems(),  "Table", "Table", true},
-                {"Plans",           "StripePlus.Plans",         StripePlus.Plans(),         "Table", "Table", true},
-                {"Subscriptions",   "StripePlus.Subscriptions", StripePlus.Subscriptions(), "Table", "Table", true}
+                "Name",             "Key",                      "Data",                             "ItemKind", "ItemName", "IsLeaf"},{
+                {"Coupons",         "StripePlus.Coupons",       StripePlus.Coupons(),               "Table",    "Table",    true},
+                {"Invoices",        "StripePlus.Invoices",      StripePlus.Invoices(),              "Table",    "Table",    true},
+                {"InvoiceItems",    "StripePlus.InvoiceItems",  StripePlus.InvoiceItems(),          "Table",    "Table",    true},
+                {"Products",        "StripePlus.Products",      StripePlus.Products(),              "Table",    "Table",    true},
+                {"Plans",           "StripePlus.Plans",         StripePlus.Plans(),                 "Table",    "Table",    true},
+                {"Subscriptions",   "StripePlus.Subscriptions", StripePlus.Subscriptions(),         "Table",    "Table",    true}
             }),
         NavTable = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
         NavTable;
 
-NavTableRelay = () as table => 
+NavTableOrders = () as table => 
     let
         objects = #table(
             {"Name",  "Key",   "Data",  "ItemKind", "ItemName", "IsLeaf"},{
                 {"Orders",      "StripePlus.Orders",    StripePlus.Orders(),    "Table", "Table", true},
-                {"Products",    "StripePlus.Products",  StripePlus.Products(),  "Table", "Table", true},
                 {"Returns",     "StripePlus.Returns",   StripePlus.Returns(),   "Table", "Table", true},
                 {"SKUs",        "StripePlus.SKUs",      StripePlus.SKUs(),      "Table", "Table", true}
             }),
@@ -121,29 +122,6 @@ shared StripePlus.BalanceHistory = () =>
                 createdConverted = ConvertUnixToDateTime(tableTyped, "created"),
                 createdAvailableOn = ConvertUnixToDateTime(createdConverted, "available_on")
 
-            in 
-                createdAvailableOn
-        else 
-            #table(columns, {})
-    in
-        table;
-
-
-[DataSource.Kind="StripePlus"]
-shared StripePlus.BalanceHistory2 = () =>
-    let
-        columns = {"id", "object", "amount", "available_on", "created", "currency", "description", "exchange_rate", "fee", "fee_details", "net", "source", "status", "type"},
-        url = "https://api.stripe.com/v1/balance/history?limit=100",
-        tableOrEmpty = GetPagedData(url),
-
-        table = if not Table.IsEmpty(tableOrEmpty) then 
-            let 
-                expandDataRecord = Table.ExpandRecordColumn(tableOrEmpty, "Column1", columns),
-                removedObject = Table.RemoveColumns(expandDataRecord, {"object"}),
-
-                tableTyped = Table.TransformColumnTypes(removedObject, {{ "amount", type number}, {"created", type number}, {"exchange_rate", type number}, {"fee", type number}, {"net", type number}}),
-                createdConverted = ConvertUnixToDateTime(tableTyped, "created"),
-                createdAvailableOn = ConvertUnixToDateTime(createdConverted, "available_on")
             in 
                 createdAvailableOn
         else 
@@ -356,10 +334,33 @@ shared StripePlus.InvoiceItems = () =>
     in
         table;
 
+
+[DataSource.Kind="StripePlus"]
+shared StripePlus.Products = () =>
+    let
+        columns = {"id", "object", "active", "attributes", "caption", "created", "deactivate_on", "description", "images", "livemode", "metadata", "name", "package_dimensions", "shippable", "skus", "statement_descriptor", "type", "unit_label", "updated", "url"},
+        url = "https://api.stripe.com/v1/products?limit=100",
+        tableOrEmpty = GetPagedData(url),
+
+        table = if not Table.IsEmpty(tableOrEmpty) then 
+            let 
+                expandRecords = Table.ExpandRecordColumn(tableOrEmpty, "Column1", columns),
+                removedObject = Table.RemoveColumns(expandRecords,{"object"}),
+                tableTyped = Table.TransformColumnTypes(removedObject, {{"created", type number}, {"active", type logical}, {"livemode", type logical}, {"shippable", type logical}, {"updated", type number}}),
+                createdConverted = ConvertUnixToDateTime(tableTyped, "created"),
+                updatedConverted = ConvertUnixToDateTime(createdConverted, "updated")
+            in 
+                createdConverted
+        else 
+            #table(columns, {})
+    in
+        table;
+
+
 [DataSource.Kind="StripePlus"]
 shared StripePlus.Plans = () =>
     let
-        columns = {"id", "object", "amount", "created", "currency", "interval", "interval_count", "livemode", "metadata", "name", "statement_descriptor"},
+        columns = {"id", "object", "amount", "created", "currency", "interval", "interval_count", "livemode", "metadata"},
         url = "https://api.stripe.com/v1/plans?limit=100",
         tableOrEmpty = GetPagedData(url),
 
@@ -406,7 +407,7 @@ shared StripePlus.Subscriptions = () =>
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-//                                      STRIPE RELAY API
+//                                      STRIPE ORDERS API
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 [DataSource.Kind="StripePlus"]
 shared StripePlus.Orders = () =>
@@ -421,29 +422,6 @@ shared StripePlus.Orders = () =>
                 removedObject = Table.RemoveColumns(expandRecords,{"object"}),
 
                 tableTyped = Table.TransformColumnTypes(removedObject, {{"amount", type number}, {"amount_returned", type number}, {"application_fee", type number}, {"created", type number}, {"livemode", type logical}, {"updated", type number}}),
-                createdConverted = ConvertUnixToDateTime(tableTyped, "created"),
-                updatedConverted = ConvertUnixToDateTime(createdConverted, "updated")
-            in 
-                updatedConverted
-        else 
-            #table(columns, {})
-    in
-        table;
-
-
-[DataSource.Kind="StripePlus"]
-shared StripePlus.Products = () =>
-    let
-        columns = {"id", "object", "active", "attributes", "caption", "created", "deactivate_on", "description", "images", "livemode", "metadata", "name","package_dimensions", "shippable", "skus", "updated", "url"},
-        url = "https://api.stripe.com/v1/products?limit=100",
-        tableOrEmpty = GetPagedData(url),
-
-        table = if not Table.IsEmpty(tableOrEmpty) then 
-            let
-                expandRecords = Table.ExpandRecordColumn(tableOrEmpty, "Column1", columns),
-                removedObject = Table.RemoveColumns(expandRecords,{"object"}),
-
-                tableTyped = Table.TransformColumnTypes(removedObject, {{"active", type logical}, {"created", type number}, {"livemode", type logical}, {"shippable", type logical},{"updated", type number} }),
                 createdConverted = ConvertUnixToDateTime(tableTyped, "created"),
                 updatedConverted = ConvertUnixToDateTime(createdConverted, "updated")
             in 

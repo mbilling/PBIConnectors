@@ -1,9 +1,13 @@
 ﻿// Use this file to write queries to test your data connector
 let
+
+//    result = StripePlus.SubscriptionProducts()
+    result = Table.RowCount(StripePlus.Products())
+
 //    result = StripePlus.Coupons()
 //    result = Table.RowCount(StripePlus.Coupons())
 //    result = StripePlus.Invoices()
-    result = Table.RowCount(StripePlus.Invoices())
+//    result = Table.RowCount(StripePlus.Invoices())
 //    result = StripePlus.InvoiceItems()
 //    result = Table.RowCount(StripePlus.InvoiceItems())
 //    result = StripePlus.Plans()
