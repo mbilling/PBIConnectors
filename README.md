@@ -130,4 +130,4 @@ Using the connectors
 [instagram-info]: https://help.instagram.com/356902681064399
 [fb_ads_insights]: https://developers.facebook.com/docs/graph-api/reference/page/insights
 [fb_ads_insights_navigator_shot]: https://github.com/mbilling/PBIConnectors/blob/master/img/fb_pages_insights_navigator_shot.PNG
-[sl-pbi-gallery]: https://try.scitylana.com/pbi-connector-gallery
+[sl-pbi-gallery]: https://www.scitylana.com/connectors
