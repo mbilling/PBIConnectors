@@ -103,7 +103,7 @@ FacebookPages.Icons = [
 shared FacebookPages.Contents = (optional url as text, optional params as record) =>
     let
         key = Extension.CurrentCredential()[access_token],
-        accountRequest = Web.Contents(baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token"])),
+        accountRequest = Web.Contents(baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token", limit="500"])),
         accounts = Json.Document(accountRequest)[data],
         table = PagesToNavTabler(accounts)
     in
