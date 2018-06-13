@@ -147,7 +147,8 @@ GetPageInsights = (page as record, months as number) =>
         // Pull 30 days per query, just to be efficient.
         unixToday =   Number.ToText(Number.Round(86400*(Number.From(DateTime.LocalNow())-Number.From(#datetime(1970,1,1,0,0,0))),0)),
         unix30DaysAgo =  Number.ToText(Number.Round(86400*(Number.From(DateTime.LocalNow())-Number.From(#datetime(1970,1,31,0,0,0))),0)),
-        query = baseUrl & page[connected_instagram_account][id] & "/insights?" & Uri.BuildQueryString([metric="impressions,reach,profile_views,website_clicks,get_directions_clicks,text_message_clicks,phone_call_clicks,email_contacts,follower_count",period="day",access_token=page[access_token], until=unixToday, since=unix30DaysAgo]),
+        access_token = Extension.CurrentCredential()[access_token],
+        query = baseUrl & page[connected_instagram_account][id] & "/insights?" & Uri.BuildQueryString([metric="impressions,reach,profile_views,website_clicks,get_directions_clicks,text_message_clicks,phone_call_clicks,email_contacts,follower_count",period="day",access_token=access_token, until=unixToday, since=unix30DaysAgo]),
 
         // Traverse "month" months of data. Facebook returns a rest url to previous 30 days for each request. Follow the these previous rest urls until we have the right amount of 30-day-months back.
         joined_response = List.Generate(
