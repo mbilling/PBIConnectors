@@ -135,7 +135,8 @@ shared FacebookAds.GetInsights = (adAccount as record) =>
 shared FacebookAds.GetAllAds = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+//        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", limit="100"]),
 
         joined_response = List.Accumulate(
             {1}, 
@@ -182,7 +183,8 @@ shared FacebookAds.GetAllAds = (adAccount as record) =>
 shared FacebookAds.GetAllAds30Days = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_30d", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+//        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_30d", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_30d", limit="100"]),
 
         joined_response = List.Accumulate(
             {1}, 
@@ -229,7 +231,8 @@ shared FacebookAds.GetAllAds30Days = (adAccount as record) =>
 shared FacebookAds.GetAllAds90Days = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_90d", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+//        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_90d", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="last_90d", limit="100"]),
 
         joined_response = List.Accumulate(
             {1}, 
@@ -273,8 +276,7 @@ shared FacebookAds.GetAllAds90Days = (adAccount as record) =>
     in
      r;
 
-
-
+     
 shared FacebookAds.GetAllActiveAds = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
@@ -326,7 +328,8 @@ shared FacebookAds.GetAllActiveAds = (adAccount as record) =>
 shared FacebookAds.GetAdActions = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+//        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", limit="100"]),
 
         getAdIds = (query, result) =>
             let
@@ -367,7 +370,7 @@ shared FacebookAds.GetAdActions = (adAccount as record) =>
             (state, adId) => List.Combine(
                 { 
                   state, 
-                  getAdInsight(baseUrl & adId & "/insights?" & Uri.BuildQueryString([access_token=access_token,fields="ad_id,campaign_id,adset_id,account_id,actions", level="ad", date_preset="lifetime", time_increment="1", limit="90"]), {})
+                  getAdInsight(baseUrl & adId & "/insights?" & Uri.BuildQueryString([access_token=access_token,fields="ad_id,campaign_id,adset_id,account_id,actions", level="ad", date_preset="lifetime", time_increment="1", limit="100"]), {})
                 }
             )
         ),
@@ -388,7 +391,8 @@ shared FacebookAds.GetAdActions = (adAccount as record) =>
 shared FacebookAds.GetAdActionValues = (adAccount as record) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+//        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", filtering="[{""field"":""spend"",""operator"":""GREATER_THAN"",""value"":""0""}]", limit="25"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset="lifetime", limit="100"]),
 
         getAdIds = (query, result) =>
             let
