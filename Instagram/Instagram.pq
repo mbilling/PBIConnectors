@@ -12,13 +12,14 @@ redirectUrl = "https://preview.powerbi.com/views/oauthredirect.html";
 windowWidth = 1080;
 windowHeight = 1024;
 
-baseUrl = "https://graph.facebook.com/v2.12/";
+baseUrl = "https://graph.facebook.com/v3.1/";
 scope_prefix = "";
 scopes = {
-	"manage_pages", "instagram_basic", "instagram_manage_insights"
+	"manage_pages", "instagram_basic", "instagram_manage_insights", "business_management"
 };
 
 Instagram = [
+    TestConnection = (dataSourcePath) => { "Instagram.Contents" },
     Authentication = [
         OAuth = [
             StartLogin = StartLogin,
@@ -113,6 +114,7 @@ shared Instagram.Contents = (optional url as text, optional params as record) =>
         table = PagesToNavTabler(accounts)
     in
         table;
+//        [name = accounts{4}[name], ig_id = accounts{4}[connected_instagram_account][id]];
 
 PagesToNavTabler = (users as list) =>
     let
