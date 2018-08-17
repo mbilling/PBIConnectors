@@ -15,7 +15,7 @@ windowHeight = 1024;
 baseUrl = "https://graph.facebook.com/v3.1/";
 scope_prefix = "";
 scopes = {
-	"manage_pages", "instagram_basic", "instagram_manage_insights", "business_management"
+	"manage_pages", "instagram_basic", "instagram_manage_insights"
 };
 
 Instagram = [
@@ -114,7 +114,18 @@ shared Instagram.Contents = (optional url as text, optional params as record) =>
         table = PagesToNavTabler(accounts)
     in
         table;
-//        [name = accounts{4}[name], ig_id = accounts{4}[connected_instagram_account][id]];
+
+[DataSource.Kind="Instagram", Publish="Instagram.Publish"]
+shared Instagram.ContentsTest = (optional url as text, optional params as record) =>
+    let
+        key = Extension.CurrentCredential()[access_token],
+        accountRequest = Web.Contents(baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token,connected_instagram_account"])),
+        accounts = Json.Document(accountRequest)[data],
+        rawtable = Table.FromList(accounts, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+        accountsTable = Table.ExpandRecordColumn(rawtable, "Column1", {"name", "connected_instagram_account"}),
+        test = Table.ExpandRecordColumn(accountsTable, "connected_instagram_account", {"id"}, {"connected__instagram__account__id"})
+    in
+        test;
 
 PagesToNavTabler = (users as list) =>
     let

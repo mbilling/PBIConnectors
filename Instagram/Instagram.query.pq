@@ -1,8 +1,11 @@
 ﻿// Use this file to write queries to test your data connector
 let
+    test = Instagram.ContentsTest(),
+
+
     accounts = Instagram.Contents(),
-//    account = accounts{[Name = "St Columbans Mission Society"]},
-    account = accounts{[Name = "Miild Makeup"]},
+    account = accounts{[Key = "St Columbans Mission Society"]},
+//    account = accounts{[Key = "Miild Makeup"]},
 
     periods = account[Data],
 //    data = periods{[Key = 1]}[Data],
@@ -17,5 +20,8 @@ let
 
     r = table[Data]
 in
+//    account
 //    tables
+//    account[Data]//{1}[Data]{[Key = "Instagram Page Insights"]}[Data]
+//    test
     r
