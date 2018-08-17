@@ -103,9 +103,9 @@ FacebookPages.Icons = [
 shared FacebookPages.Contents = (optional url as text, optional params as record) =>
     let
         key = Extension.CurrentCredential()[access_token],
-        accountRequest = Web.Contents(baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token", limit="500"])),
-        accounts = Json.Document(accountRequest)[data],
-        table = PagesToNavTabler(accounts)
+        seed = baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token", limit="500"]),
+        pagedResult = FacebookPages.GetPagedData(seed, {}),
+        table = PagesToNavTabler(pagedResult)
     in
         table;
 
@@ -320,6 +320,20 @@ GetPagePostInsights = (page as record, preset as text) =>
         table;
 
 
+FacebookPages.GetPagedData = (query, result) =>
+    let
+        response = Json.Document(Web.Contents(query)),
+        newResult = List.Combine({result, response[data]}),
+        nextQuery = try response[paging][next] otherwise null,
+        testForError = try response
+    in
+        if testForError[HasError] then 
+            {[has_error = testForError[HasError], error_value = try testForError[Value], error_reason = testForError[Error][Reason], error_message = testForError[Error][Message]]}
+        else 
+            if nextQuery <> null then 
+                FacebookPages.GetPagedData(nextQuery, newResult)
+            else
+                newResult;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////                                                                            ////////////
