@@ -210,7 +210,7 @@ shared FacebookAds.GetAllAds = (adAccount as record, date_preset as text, active
 shared FacebookAds.GetAdActions = (adAccount as record, date_preset as text) =>
     let
         access_token = Extension.CurrentCredential()[access_token],
-        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name", date_preset=date_preset, limit="500"]),
+        seed = baseUrl & adAccount[id] & "/ads?" & Uri.BuildQueryString([access_token=access_token, fields="name, effective_status", date_preset=date_preset, limit="500"]),
 
         getAdIds = (query, result) =>
             let
