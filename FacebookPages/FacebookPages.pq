@@ -18,6 +18,7 @@ scopes = {
 };
 
 FacebookPages = [
+    TestConnection = (dataSourcePath) => { "FacebookPages.Contents" },
     Authentication = [
         OAuth = [
             StartLogin = StartLogin,

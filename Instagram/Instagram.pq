@@ -115,24 +115,7 @@ shared Instagram.Contents = (optional url as text, optional params as record) =>
     in
         table;
 
-
-Instagram.GetPagedData = (query, result) =>
-    let
-        response = Json.Document(Web.Contents(query)),
-        newResult = List.Combine({result, response[data]}),
-        nextQuery = try response[paging][next] otherwise null,
-        testForError = try response
-    in
-        if testForError[HasError] then 
-            {[has_error = testForError[HasError], error_value = try testForError[Value], error_reason = testForError[Error][Reason], error_message = testForError[Error][Message]]}
-        else 
-            if nextQuery <> null then 
-                Instagram.GetPagedData(nextQuery, newResult)
-            else
-                newResult;
-
-
-[DataSource.Kind="Instagram", Publish="Instagram.Publish"]
+//[DataSource.Kind="Instagram", Publish="Instagram.Publish"]
 shared Instagram.ContentsTest = (optional url as text, optional params as record) =>
     let
         key = Extension.CurrentCredential()[access_token],
@@ -209,6 +192,21 @@ GetPageInsights = (page as record, months as number) =>
     in
         table;
 
+
+Instagram.GetPagedData = (query, result) =>
+    let
+        response = Json.Document(Web.Contents(query)),
+        newResult = List.Combine({result, response[data]}),
+        nextQuery = try response[paging][next] otherwise null,
+        testForError = try response
+    in
+        if testForError[HasError] then 
+            {[has_error = testForError[HasError], error_value = try testForError[Value], error_reason = testForError[Error][Reason], error_message = testForError[Error][Message]]}
+        else 
+            if nextQuery <> null then 
+                Instagram.GetPagedData(nextQuery, newResult)
+            else
+                newResult;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////                                                                            ////////////

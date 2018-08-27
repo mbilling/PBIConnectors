@@ -5,6 +5,7 @@ windowHeight = 1000;
 
 // Data Source Kind description
 StripePlus = [
+    TestConnection = (dataSourcePath) => { "StripePlus.Navigation" },
     Authentication = [
         UsernamePassword = [
             UsernameLabel="Enter Stripe API key"

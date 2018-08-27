@@ -20,6 +20,7 @@ scopes = {
 };
 
 LinkedIn = [
+    TestConnection = (dataSourcePath) => { "LinkedIn.Navigation" },
     Authentication = [
         OAuth = [
             StartLogin = StartLogin,
