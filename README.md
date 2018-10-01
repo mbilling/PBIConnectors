@@ -1,12 +1,17 @@
 # Microsoft Power BI Custom Data Connectors
-The Microsoft Power BI custom connector support-project
+The Microsoft Power BI custom connector support-project.
+Thank you for the support from users all over giving me feedback and using the connectors.
+Users I know of: Francisco Altamirano, Blastam, Masai, Puori, Bangerhead, Columban Mission, Stanton Fisher and Tanger Outlet
 
 ## Available custom data connectors
 * [Stripe](#the-stripe-connector)
 * [LinkedIn](#the-linkedin-connector)
 * [Facebook Pages Insight](#the-facebook-pages-insight-connector)
-* [Facebook Ads Insight](#the-facebook-ads-insight-connector) NEW
+* [Facebook Ads Insight](#the-facebook-ads-insight-connector)
 * [Instagram](#the-instagram-connector)
+
+## Any wishes?
+I would like feedback on which data connector YOU need. Maybe I can help or we can build it together.
 
 ## Download ready-to-use packages
 You can download ready-to-use .mez files from SCITYLANA [here][sl-pbi-gallery].
@@ -84,6 +89,17 @@ This is how it looks in Power BI:
 
 ## The Instagram Connector
 
+### Instagram - Facebok page association issue
+To pull statistics from Instagram you need to set-up an association with a Facebook Page. This is not a big deal.
+But if you already did this a while ago, you might need doing it again.
+If the Instagram connector fails with the message "The field 'connected_instagram_account' of the record wasn't found." then the Instagram account and the Facebook page are not completely connected.
+
+I have been able to circumvent this problem by 
+1. Switching the IOS/Android app from Business Account to Personal Account and back to Business Account.
+2. The again from the IOS/Android app - Unlink Facebook account and Link it again.
+
+## Get started
+
 To build the connector you need to create a Facebook/Instagram App to get an OAuth2 key and secret. 
 You need to have your Instagram Account conected to your Facebook Page, [read more here][instagram-info]
 
@@ -100,6 +116,8 @@ This connector is focused on accessing page insights using the Instagram insight
 This is how it looks in Power BI:
 
 <img src="https://github.com/mbilling/PBIConnectors/blob/master/img/instagram_insights_navigator_shot.PNG" alt="The Instagram Insight Connector in Power BI" title="The Instagram Insight Connector in Power BI"/>
+
+
 
 
 ## How to use the custom connectors
