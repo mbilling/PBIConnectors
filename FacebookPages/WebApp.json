@@ -1,7 +1,7 @@
 {
    "web":{
-      "client_id":"185012002255273",
-      "client_secret":"e80e103a643d20248632361c6bca5a2d",
+      "client_id":"",
+      "client_secret":"",
       "authorize_uri":"https://www.facebook.com/v2.12/dialog/oauth",
       "token_uri":"https://graph.facebook.com/oauth/access_token",
       "redirect_uris":["https://oauth.powerbi.com/views/oauthredirect.html"]
