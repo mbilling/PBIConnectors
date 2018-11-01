@@ -204,9 +204,14 @@ shared FacebookAds.GetAdInsights = (adAccount as record, date_preset as text, ac
                         tableOrderedColumns,
 
                 changed = if List.Count(list) > 0 then
-                        unwrapResults(list)
-                    else
-                        {}
+                    let
+                        unwrappedResults = unwrapResults(list),
+                        JoinedTables = Table.NestedJoin(unwrappedResults,{"ad_id"},selectedAdIds,{"id"},"JoinedTable",JoinKind.LeftOuter),
+                        out = Table.ExpandTableColumn(JoinedTables, "JoinedTable", {"effective_status"})
+                    in
+                        out
+                else
+                    {}
             in 
                 changed,
 
