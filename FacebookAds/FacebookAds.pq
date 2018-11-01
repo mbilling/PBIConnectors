@@ -8,7 +8,7 @@ authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][aut
 
 redirectUrl = "https://preview.powerbi.com/views/oauthredirect.html";
 
-baseUrl = "https://graph.facebook.com/v3.1/";
+baseUrl = "https://graph.facebook.com/v3.2/";
 windowWidth = 1080;
 windowHeight = 1024;
 
@@ -204,14 +204,14 @@ shared FacebookAds.GetAdInsights = (adAccount as record, date_preset as text, ac
                         tableOrderedColumns,
 
                 changed = if List.Count(list) > 0 then
-                    let
-                        unwrappedResults = unwrapResults(list),
-                        JoinedTables = Table.NestedJoin(unwrappedResults,{"ad_id"},selectedAdIds,{"id"},"JoinedTable",JoinKind.LeftOuter),
-                        out = Table.ExpandTableColumn(JoinedTables, "JoinedTable", {"effective_status"})
-                    in
-                        out
-                else
-                    {}
+                        let
+                            unwrappedResults = unwrapResults(list),
+                            JoinedTables = Table.NestedJoin(unwrappedResults,{"Ad ID"},selectedAdIds,{"id"},"JoinedTable",JoinKind.LeftOuter),
+                            out = Table.ExpandTableColumn(JoinedTables, "JoinedTable", {"effective_status"})
+                        in
+                            out
+                    else
+                        {}
             in 
                 changed,
 
@@ -278,7 +278,12 @@ shared FacebookAds.GetAdActions = (adAccount as record, date_preset as text, act
                         removedArtifactUnknownColumn,
 
                 changed = if List.Count(list) > 0 then
-                        unwrapResults(list)
+                        let
+                            unwrappedResults = unwrapResults(list),
+                            JoinedTables = Table.NestedJoin(unwrappedResults,{"Ad ID"},selectedAdIds,{"id"},"JoinedTable",JoinKind.LeftOuter),
+                            out = Table.ExpandTableColumn(JoinedTables, "JoinedTable", {"effective_status"})
+                        in
+                            out
                     else
                         {}
             in 
@@ -340,7 +345,6 @@ shared FacebookAds.GetAdActionValues = (adAccount as record, date_preset as text
                         expandedActionValuesList = Table.ExpandListColumn(tableOrderedColumns, "Action Values"),
                         expandedActionValuesRecord = Table.ExpandRecordColumn(expandedActionValuesList, "Action Values", {"action_type", "value"}, {"action_type", "value"}),
                         expandedActionValuesTyped = Table.TransformColumnTypes(expandedActionValuesRecord,{{"value", type number}, {"action_type", type text}}),
-//                        removedNulls = Table.SelectRows(expandedActionValuesTyped, each [action_type] <> null),
                         removedNulls = Table.ReplaceValue(expandedActionValuesTyped,null,"(unknown)",Replacer.ReplaceValue,{"action_type"}),
                         tableWithAddedMetricsAsColumns = Table.Pivot(removedNulls, List.Distinct(removedNulls[action_type]), "action_type", "value", List.Sum),
                         removedArtifactUnknownColumn = try Table.RemoveColumns(tableWithAddedMetricsAsColumns, {"(unknown)"}) otherwise tableWithAddedMetricsAsColumns
@@ -348,7 +352,12 @@ shared FacebookAds.GetAdActionValues = (adAccount as record, date_preset as text
                         removedArtifactUnknownColumn,
 
                 changed = if List.Count(list) > 0 then
-                        unwrapResults(list)
+                        let
+                            unwrappedResults = unwrapResults(list),
+                            JoinedTables = Table.NestedJoin(unwrappedResults,{"Ad ID"},selectedAdIds,{"id"},"JoinedTable",JoinKind.LeftOuter),
+                            out = Table.ExpandTableColumn(JoinedTables, "JoinedTable", {"effective_status"})
+                        in
+                            out
                     else
                         {}
             in 
