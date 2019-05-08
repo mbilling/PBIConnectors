@@ -7,7 +7,7 @@ client_secret   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][cli
 token_uri       = Json.Document ( Extension.Contents( "WebApp.json") ) [web][token_uri];
 authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][authorize_uri];
 
-redirectUrl = "https://preview.powerbi.com/views/oauthredirect.html";
+redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 
 windowWidth = 1080;
 windowHeight = 1024;
@@ -55,7 +55,7 @@ FinishLogin = (context, callbackUri, state) =>
         result = if (Record.HasFields(parts, {"error", "error_description"})) then 
                     error Error.Record(parts[error], parts[error_description], parts)
                  else
-                   TokenMethod("authorization_code", parts[code])
+                    if(Record.HasFields(parts, "code")) then TokenMethod("authorization_code", parts[code]) else error Error.Record("OAuth 'code' is missing, state = " + state, callbackUri, parts)
     in
         result;
 
@@ -182,13 +182,13 @@ GetPageInsights = (page as record, months as number) =>
         #"Expanded Column2" = Table.ExpandRecordColumn(#"Expanded Column3", "Column1", {"name", "period", "values"}, {"name", "period", "values"}),
         #"Expanded values" = Table.ExpandListColumn(#"Expanded Column2", "values"),
         #"Expanded values1" = Table.ExpandRecordColumn(#"Expanded values", "values", {"value", "end_time"}, {"value", "end_time"}),
-        #"Changed Type1" = Table.TransformColumnTypes(#"Expanded values1",{{"value", Int64.Type}}),
+        #"Changed Type1" = Table.TransformColumnTypes(#"Expanded values1",{{"value", Int64.Type}}, "en-US"),
         #"Pivoted Column1" = Table.Pivot(#"Changed Type1", List.Distinct(#"Changed Type1"[name]), "name", "value", List.Sum),
-        #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column1",{{"end_time", type datetime}}),
-        #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"end_time", type date}}),
+        #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column1",{{"end_time", type datetime}}, "en-US"),
+        #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"end_time", type date}}, "en-US"),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"end_time", "date"}}),
         #"Removed Column" = Table.RemoveColumns(#"Renamed to date", {"period"}),
-        table = Table.TransformColumnTypes(#"Removed Column",{{"impressions", Int64.Type}, {"reach", Int64.Type}, {"profile_views", Int64.Type}, {"website_clicks", Int64.Type}, {"get_directions_clicks", Int64.Type}, {"text_message_clicks", Int64.Type}, {"phone_call_clicks", Int64.Type}, {"email_contacts", Int64.Type}, {"follower_count", Int64.Type}})
+        table = Table.TransformColumnTypes(#"Removed Column",{{"impressions", Int64.Type}, {"reach", Int64.Type}, {"profile_views", Int64.Type}, {"website_clicks", Int64.Type}, {"get_directions_clicks", Int64.Type}, {"text_message_clicks", Int64.Type}, {"phone_call_clicks", Int64.Type}, {"email_contacts", Int64.Type}, {"follower_count", Int64.Type}}, "en-US")
     in
         table;
 

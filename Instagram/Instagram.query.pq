@@ -4,8 +4,8 @@ let
 
 
     accounts = Instagram.Contents(),
-    account = accounts{[Key = "St Columbans Mission Society"]},
-//    account = accounts{[Key = "Miild Makeup"]},
+//    account = accounts{[Key = "St Columbans Mission Society"]},
+    account = accounts{[Key = "Miild Makeup"]},
 
     periods = account[Data],
 //    data = periods{[Key = 1]}[Data],
@@ -20,8 +20,8 @@ let
 
     r = table[Data]
 in
-//    account
-    accounts
+    periods
+//    accounts
 //    tables
 //    account[Data]//{1}[Data]{[Key = "Instagram Page Insights"]}[Data]
 //    test
