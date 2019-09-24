@@ -12,7 +12,7 @@ redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 windowWidth = 1080;
 windowHeight = 1024;
 
-baseUrl = "https://graph.facebook.com/v3.1/";
+baseUrl = "https://graph.facebook.com/v4.0/";
 scope_prefix = "";
 scopes = {
 	"manage_pages", "instagram_basic", "instagram_manage_insights"
@@ -23,7 +23,6 @@ Instagram = [
     Authentication = [
         OAuth = [
             StartLogin = StartLogin,
-            Refresh = Refresh,
             FinishLogin = FinishLogin
         ]
     ],
@@ -38,7 +37,7 @@ StartLogin = (resourceUrl, state, display) =>
         redirect_uri = redirectUrl,
         state = state,
         scope = GetScopeString(scopes, scope_prefix),
-        response_type = "code"
+        response_type = "token"
     ])
     in
         [
@@ -51,40 +50,33 @@ StartLogin = (resourceUrl, state, display) =>
 
 FinishLogin = (context, callbackUri, state) =>
     let
-        parts = Uri.Parts(callbackUri)[Query],
-        result = if (Record.HasFields(parts, {"error", "error_description"})) then 
-                    error Error.Record(parts[error], parts[error_description], parts)
-                 else
-                    if(Record.HasFields(parts, "code")) then TokenMethod("authorization_code", parts[code]) else error Error.Record("OAuth 'code' is missing, state = " + state, callbackUri, parts)
+        access_token = Text.Split(Text.Split(Text.Split(callbackUri, "#"){1}, "&"){0}, "="){1},
+        result = TokenMethod("fb_exchange_token", "fb_exchange_token", access_token)
     in
         result;
 
-Refresh = (resourceUrl, refresh_token) => TokenMethod("refresh_token", refresh_token);
-
-TokenMethod = (grantType, code) =>
+TokenMethod = (grantType, tokenField, code) =>
     let
-        query = [
+        queryString = [
             grant_type = grantType,
             client_id = client_id,
             client_secret = client_secret,
             redirect_uri = redirectUrl
         ],
-
-        // {CODE From Matt} added for Google API - field is "code" on initial auth, and "refresh_token" for refresh
-        queryWithCode = if (grantType = "refresh_token") then [ refresh_token = code ] else [code = code],
+        queryWithCode = Record.AddField(queryString, tokenField, code),
 
         response = Web.Contents(token_uri, [
-            Content = Text.ToBinary(Uri.BuildQueryString(query & queryWithCode)),
-            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], ManualStatusHandling = {400}]),
+            Content = Text.ToBinary(Uri.BuildQueryString(queryWithCode)),
+            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], 
+            ManualStatusHandling = {400}
+        ]),
         body = Json.Document(response),
-        result = if  (Record.HasFields(body, {"error", "error_description"})) then  
+        result = if(Record.HasFields(body, {"error", "error_description"})) then  
                     error Error.Record(body[error], body[error_description], body)
                  else
                     body
     in
-        result;
-
-
+        body;
 
 // Data Source UI publishing description
 Instagram.Publish = [
@@ -102,8 +94,6 @@ Instagram.Icons = [
 ];
 
 
-
-
 // Navigation entry point
 [DataSource.Kind="Instagram", Publish="Instagram.Publish"]
 shared Instagram.Contents = (optional url as text, optional params as record) =>
@@ -115,17 +105,6 @@ shared Instagram.Contents = (optional url as text, optional params as record) =>
     in
         table;
 
-//[DataSource.Kind="Instagram", Publish="Instagram.Publish"]
-shared Instagram.ContentsTest = (optional url as text, optional params as record) =>
-    let
-        key = Extension.CurrentCredential()[access_token],
-        accountRequest = Web.Contents(baseUrl & "me/accounts?" & Uri.BuildQueryString([access_token=key, fields="name,access_token,connected_instagram_account"])),
-        accounts = Json.Document(accountRequest)[data],
-        rawtable = Table.FromList(accounts, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
-        accountsTable = Table.ExpandRecordColumn(rawtable, "Column1", {"name", "connected_instagram_account"}),
-        test = Table.ExpandRecordColumn(accountsTable, "connected_instagram_account", {"id"}, {"connected__instagram__account__id"})
-    in
-        test;
 
 PagesToNavTabler = (users as list) =>
     let

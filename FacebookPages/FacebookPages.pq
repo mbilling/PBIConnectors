@@ -8,10 +8,7 @@ authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][aut
 
 redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 
-windowWidth = 1080;
-windowHeight = 1024;
-
-baseUrl = "https://graph.facebook.com/v2.12/";
+baseUrl = "https://graph.facebook.com/v4.0/";
 scope_prefix = "";
 scopes = {
 	"manage_pages", "read_insights"
@@ -22,7 +19,6 @@ FacebookPages = [
     Authentication = [
         OAuth = [
             StartLogin = StartLogin,
-            Refresh = Refresh,
             FinishLogin = FinishLogin
         ]
     ],
@@ -37,7 +33,7 @@ StartLogin = (resourceUrl, state, display) =>
         redirect_uri = redirectUrl,
         state = state,
         scope = GetScopeString(scopes, scope_prefix),
-        response_type = "code"
+        response_type = "token"
     ])
     in
         [
@@ -50,33 +46,30 @@ StartLogin = (resourceUrl, state, display) =>
 
 FinishLogin = (context, callbackUri, state) =>
     let
-        parts = Uri.Parts(callbackUri)[Query],
-        result = if (Record.HasFields(parts, {"error", "error_description"})) then 
-                    error Error.Record(parts[error], parts[error_description], parts)
-                 else
-                   TokenMethod("authorization_code", parts[code])
+        access_token = Text.Split(Text.Split(Text.Split(callbackUri, "#"){1}, "&"){0}, "="){1},
+        result = TokenMethod("fb_exchange_token", "fb_exchange_token", access_token)
     in
         result;
 
 Refresh = (resourceUrl, refresh_token) => TokenMethod("refresh_token", refresh_token);
 
-TokenMethod = (grantType, code) =>
+TokenMethod = (grantType, tokenField, code) =>
     let
-        query = [
+        queryString = [
             grant_type = grantType,
             client_id = client_id,
             client_secret = client_secret,
             redirect_uri = redirectUrl
         ],
-
-        // {CODE From Matt} added for Google API - field is "code" on initial auth, and "refresh_token" for refresh
-        queryWithCode = if (grantType = "refresh_token") then [ refresh_token = code ] else [code = code],
+        queryWithCode = Record.AddField(queryString, tokenField, code),
 
         response = Web.Contents(token_uri, [
-            Content = Text.ToBinary(Uri.BuildQueryString(query & queryWithCode)),
-            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], ManualStatusHandling = {400}]),
+            Content = Text.ToBinary(Uri.BuildQueryString(queryWithCode)),
+            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], 
+            ManualStatusHandling = {400}
+        ]),
         body = Json.Document(response),
-        result = if  (Record.HasFields(body, {"error", "error_description"})) then  
+        result = if(Record.HasFields(body, {"error", "error_description"})) then  
                     error Error.Record(body[error], body[error_description], body)
                  else
                     body
@@ -121,7 +114,7 @@ PagesToNavTabler = (users as list) =>
 
 GetDatePresets = (page as record) =>
     let 
-        presets = {"last_7d", "last_14d", "last_28d", "last_30d", "last_90d"},
+        presets = {"last_7d", "last_14d", "last_28d", "last_30d", "last_90d", "lifetime"},
         navHeader = {"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"}, 
         navInsights = List.Accumulate(presets, {}, (state, current) => state & {{current, current, GetInsights(page, current), "Table", "Table", false}} ),
         objects = #table(navHeader, navInsights),
@@ -133,7 +126,7 @@ GetInsights = (page as record, preset as text) =>
     let
         objects = #table(
             {"Name", "Key", "Data", "ItemKind", "ItemName", "IsLeaf"},{
-            {"FB Page Story Insights", "FB Page Story Insights", GetPageStoryInsights(page, preset), "Table", "Table", true},
+//            {"FB Page Story Insights", "FB Page Story Insights", GetPageStoryInsights(page, preset), "Table", "Table", true},
             {"FB Page Impression Insights", "FB Page Impression Insights", GetPageImpressionInsights(page, preset), "Table", "Table", true},
             {"FB Page Engagement Insights", "FB Page Engagement Insights", GetPageEngagementInsights(page, preset), "Table", "Table", true},
             {"FB Page Reaction Insights", "FB Page Reaction Insights", GetPageReactionInsights(page, preset), "Table", "Table", true},
@@ -150,7 +143,7 @@ GetInsights = (page as record, preset as text) =>
 
 GetPageStoryInsights = (page as record, preset as text) =>
     let
-        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_stories",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
+        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_content_activity",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
         data = Json.Document(response)[data],
         #"From list" = Table.FromList(data, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         #"Expanded {0}" = Table.ExpandRecordColumn(#"From list", "Column1", {"name", "period", "values"}, {"Column1.name", "Column1.period", "Column1.values"}),
@@ -161,7 +154,7 @@ GetPageStoryInsights = (page as record, preset as text) =>
         #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"Column1.values.end_time", type datetime}}, "en-US"),
         #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"Column1.values.end_time", type date}}, "en-US"),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"Column1.values.end_time", "date"}}),
-        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_stories", Int64.Type}}, "en-US")
+        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_content_activity", Int64.Type}}, "en-US")
     in
         table;
 
@@ -185,7 +178,7 @@ GetPageImpressionInsights = (page as record, preset as text) =>
 
 GetPageEngagementInsights = (page as record, preset as text) =>
     let
-        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_engaged_users,page_post_engagements,page_consumptions,page_consumptions_unique,page_negative_feedback,page_negative_feedback_unique",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
+        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_engaged_users,page_post_engagements,page_consumptions,page_consumptions_unique,page_negative_feedback,page_negative_feedback_unique,page_places_checkin_total,page_places_checkin_total_unique,page_places_checkin_mobile,page_places_checkin_mobile_unique",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
         data = Json.Document(response)[data],
         #"From list" = Table.FromList(data, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         #"Expanded {0}" = Table.ExpandRecordColumn(#"From list", "Column1", {"name", "period", "values"}, {"Column1.name", "Column1.period", "Column1.values"}),
@@ -196,13 +189,13 @@ GetPageEngagementInsights = (page as record, preset as text) =>
         #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"Column1.values.end_time", type datetime}}, "en-US"),
         #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"Column1.values.end_time", type date}}, "en-US"),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"Column1.values.end_time", "date"}}),
-        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_engaged_users", Int64.Type}, {"page_post_engagements", Int64.Type}, {"page_consumptions", Int64.Type}, {"page_consumptions_unique", Int64.Type}, {"page_negative_feedback", Int64.Type}, {"page_negative_feedback_unique", Int64.Type}}, "en-US")
+        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_engaged_users", Int64.Type}, {"page_post_engagements", Int64.Type}, {"page_consumptions", Int64.Type}, {"page_consumptions_unique", Int64.Type}, {"page_negative_feedback", Int64.Type}, {"page_negative_feedback_unique", Int64.Type}, {"page_places_checkin_total", Int64.Type}, {"page_places_checkin_total_unique", Int64.Type}, {"page_places_checkin_mobile", Int64.Type}, {"page_places_checkin_mobile_unique", Int64.Type}}, "en-US")
     in
         table;
 
 GetPageReactionInsights = (page as record, preset as text) =>
     let
-        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_actions_post_reactions_like_total,page_actions_post_reactions_love_total,page_actions_post_reactions_wow_total,page_actions_post_reactions_haha_total,page_actions_post_reactions_sorry_total,page_actions_post_reactions_anger_total",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
+        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_actions_post_reactions_like_total,page_actions_post_reactions_love_total,page_actions_post_reactions_wow_total,page_actions_post_reactions_haha_total,page_actions_post_reactions_sorry_total,page_actions_post_reactions_anger_total,page_actions_post_reactions_total",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
         data = Json.Document(response)[data],
         #"From list" = Table.FromList(data, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         #"Expanded {0}" = Table.ExpandRecordColumn(#"From list", "Column1", {"name", "period", "values"}, {"Column1.name", "Column1.period", "Column1.values"}),
@@ -213,13 +206,13 @@ GetPageReactionInsights = (page as record, preset as text) =>
         #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"Column1.values.end_time", type datetime}}, "en-US"),
         #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"Column1.values.end_time", type date}}, "en-US"),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"Column1.values.end_time", "date"}}),
-        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_actions_post_reactions_like_total", Int64.Type}, {"page_actions_post_reactions_love_total", Int64.Type}, {"page_actions_post_reactions_wow_total", Int64.Type}, {"page_actions_post_reactions_haha_total", Int64.Type}, {"page_actions_post_reactions_sorry_total", Int64.Type}, {"page_actions_post_reactions_anger_total", Int64.Type}}, "en-US")
+        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_actions_post_reactions_like_total", Int64.Type}, {"page_actions_post_reactions_love_total", Int64.Type}, {"page_actions_post_reactions_wow_total", Int64.Type}, {"page_actions_post_reactions_haha_total", Int64.Type}, {"page_actions_post_reactions_sorry_total", Int64.Type}, {"page_actions_post_reactions_anger_total", Int64.Type}, {"page_actions_post_reactions_total", Int64.Type}}, "en-US")
     in
         table;
 
 GetPageCTAClickInsights = (page as record, preset as text) =>
     let
-        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_total_actions,page_call_phone_clicks_logged_in_unique,page_get_directions_clicks_logged_in_unique,page_website_clicks_logged_in_unique",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
+        response = Web.Contents(baseUrl & page[id] & "/insights?" & Uri.BuildQueryString([metric="page_total_actions,page_call_phone_clicks_logged_in_unique,page_get_directions_clicks_logged_in_unique,page_website_clicks_logged_in_unique,page_cta_clicks_logged_in_total,page_cta_clicks_logged_in_unique",period="day",show_description_from_api_doc="false",date_preset=preset,access_token=page[access_token]])),
         data = Json.Document(response)[data],
         #"From list" = Table.FromList(data, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
         #"Expanded {0}" = Table.ExpandRecordColumn(#"From list", "Column1", {"name", "period", "values"}, {"Column1.name", "Column1.period", "Column1.values"}),
@@ -230,7 +223,7 @@ GetPageCTAClickInsights = (page as record, preset as text) =>
         #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"Column1.values.end_time", type datetime}}, "en-US"),
         #"Changed Type Date" = Table.TransformColumnTypes(#"Changed Type",{{"Column1.values.end_time", type date}}, "en-US"),
         #"Renamed to date" = Table.RenameColumns(#"Changed Type Date",{{"Column1.values.end_time", "date"}}),
-        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_total_actions", Int64.Type}, {"page_call_phone_clicks_logged_in_unique", Int64.Type}, {"page_get_directions_clicks_logged_in_unique", Int64.Type}, {"page_website_clicks_logged_in_unique", Int64.Type}}, "en-US")
+        table = Table.TransformColumnTypes(#"Renamed to date",{{"page_total_actions", Int64.Type}, {"page_call_phone_clicks_logged_in_unique", Int64.Type}, {"page_get_directions_clicks_logged_in_unique", Int64.Type}, {"page_website_clicks_logged_in_unique", Int64.Type}, {"page_cta_clicks_logged_in_unique", Int64.Type}}, "en-US")
     in
         table;
 

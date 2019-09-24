@@ -5,13 +5,9 @@ client_id       = Json.Document ( Extension.Contents( "WebApp.json") ) [web][cli
 client_secret   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][client_secret];
 token_uri       = Json.Document ( Extension.Contents( "WebApp.json") ) [web][token_uri];
 authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][authorize_uri];
-
 redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 
-baseUrl = "https://graph.facebook.com/v3.2/";
-windowWidth = 1080;
-windowHeight = 1024;
-
+baseUrl = "https://graph.facebook.com/v4.0/";
 fetchLimit = "100";
 
 scope_prefix = "";
@@ -38,7 +34,7 @@ StartLogin = (resourceUrl, state, display) =>
         redirect_uri = redirectUrl,
         state = state,
         scope = GetScopeString(scopes, scope_prefix),
-        response_type = "code"
+        response_type = "token"
     ])
     in
         [
@@ -51,33 +47,28 @@ StartLogin = (resourceUrl, state, display) =>
 
 FinishLogin = (context, callbackUri, state) =>
     let
-        parts = Uri.Parts(callbackUri)[Query],
-        result = if (Record.HasFields(parts, {"error", "error_description"})) then 
-                    error Error.Record(parts[error], parts[error_description], parts)
-                 else
-                   TokenMethod("authorization_code", parts[code])
+        access_token = Text.Split(Text.Split(Text.Split(callbackUri, "#"){1}, "&"){0}, "="){1},
+        result = TokenMethod("fb_exchange_token", "fb_exchange_token", access_token)
     in
         result;
 
-Refresh = (resourceUrl, refresh_token) => TokenMethod("refresh_token", refresh_token);
-
-TokenMethod = (grantType, code) =>
+TokenMethod = (grantType, tokenField, code) =>
     let
-        query = [
+        queryString = [
             grant_type = grantType,
             client_id = client_id,
             client_secret = client_secret,
             redirect_uri = redirectUrl
         ],
-
-        // {CODE From Matt} added for Google API - field is "code" on initial auth, and "refresh_token" for refresh
-        queryWithCode = if (grantType = "refresh_token") then [ refresh_token = code ] else [code = code],
+        queryWithCode = Record.AddField(queryString, tokenField, code),
 
         response = Web.Contents(token_uri, [
-            Content = Text.ToBinary(Uri.BuildQueryString(query & queryWithCode)),
-            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], ManualStatusHandling = {400}]),
+            Content = Text.ToBinary(Uri.BuildQueryString(queryWithCode)),
+            Headers=[#"Content-type" = "application/x-www-form-urlencoded",#"Accept" = "application/json"], 
+            ManualStatusHandling = {400}
+        ]),
         body = Json.Document(response),
-        result = if  (Record.HasFields(body, {"error", "error_description"})) then  
+        result = if(Record.HasFields(body, {"error", "error_description"})) then  
                     error Error.Record(body[error], body[error_description], body)
                  else
                     body
