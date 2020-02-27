@@ -6,8 +6,8 @@ client_secret   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][cli
 token_uri       = Json.Document ( Extension.Contents( "WebApp.json") ) [web][token_uri];
 authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][authorize_uri];
 redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
-
-baseUrl = "https://graph.facebook.com/v4.0/";
+    
+baseUrl = "https://graph.facebook.com/v6.0/";
 fetchLimit = "100";
 
 scope_prefix = "";

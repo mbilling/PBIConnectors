@@ -1,1 +1,4 @@
-﻿LinkedIn.historicalStatusUpdateStatistics()
+﻿let
+     result = LinkedIn.test()
+in
+    result

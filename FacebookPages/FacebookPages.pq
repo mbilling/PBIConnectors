@@ -8,7 +8,7 @@ authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][aut
 
 redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 
-baseUrl = "https://graph.facebook.com/v4.0/";
+baseUrl = "https://graph.facebook.com/v6.0/";
 scope_prefix = "";
 scopes = {
 	"manage_pages", "read_insights"

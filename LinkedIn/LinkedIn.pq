@@ -8,15 +8,13 @@ redirectUrl = Json.Document ( Extension.Contents( "WebApp.json") )  [web][redire
 token_uri = Json.Document ( Extension.Contents( "WebApp.json") )  [web][token_uri];
 authorize_uri = Json.Document ( Extension.Contents( "WebApp.json") )  [web][auth_uri];
 logout_uri = "https://www.linkedin.com/oauth/v2/logout";
-                                                              
-windowWidth = 720;
-windowHeight = 1024;
 
 //// We define the scopes which are simply the types of access the the OAuth will provide
 //// See https://developer.linkedin.com/docs/oauth2 for scopes 
 scope_prefix = "";
 scopes = {
-	"rw_company_admin"
+	"r_liteprofile",
+    "rw_organization_admin"
 };
 
 LinkedIn = [
@@ -127,6 +125,17 @@ NavigationType = type function () as table meta [
     in
         NavTable;
 
+
+
+[DataSource.Kind="LinkedIn"]
+shared LinkedIn.test = ()  =>
+  let
+    requesturl = "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee",
+    Source = Json.Document(Web.Contents(requesturl))
+in
+    Source;
+
+
 [DataSource.Kind="LinkedIn"]
 shared LinkedIn.historicalStatusUpdateStatistics = Value.ReplaceType(historicalStatusUpdateStatistics, historicalStatusUpdateStatisticsType);
 
@@ -202,7 +211,7 @@ Statistics retrieved by this API are up-to-date in real time.",
 
 historicalFollowStatistics = ()  =>
   let
-    requesturl = "https://api.linkedin.com/v1/companies?format=json&is-company-admin=true",
+    requesturl = "https://api.linkedin.com/v2/search?q=companiesV2&baseSearchParams.keywords=LinkedIn%20Corporation",
     Source = Json.Document(Web.Contents(requesturl)),
 	Table = Record.ToTable(Source),
     ValidRows = Table.Skip(Table, 1),

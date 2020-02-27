@@ -12,7 +12,7 @@ redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
 windowWidth = 1080;
 windowHeight = 1024;
 
-baseUrl = "https://graph.facebook.com/v4.0/";
+baseUrl = "https://graph.facebook.com/v6.0/";
 scope_prefix = "";
 scopes = {
 	"manage_pages", "instagram_basic", "instagram_manage_insights"
