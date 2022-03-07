@@ -7,13 +7,11 @@ token_uri       = Json.Document ( Extension.Contents( "WebApp.json") ) [web][tok
 authorize_uri   = Json.Document ( Extension.Contents( "WebApp.json") ) [web][authorize_uri];
 redirectUrl = "https://oauth.powerbi.com/views/oauthredirect.html";
     
-baseUrl = "https://graph.facebook.com/v6.0/";
+baseUrl = "https://graph.facebook.com/v13.0/";
 fetchLimit = "100";
 
 scope_prefix = "";
-scopes = {
-	"ads_read"
-};
+scopes = { "read_insights", "pages_manage_ads", "pages_manage_metadata", "pages_read_engagement", "pages_read_user_content", "pages_manage_posts", "pages_manage_engagement", "ads_management" };
 
 FacebookAds = [
     TestConnection = (dataSourcePath) => { "FacebookAds.Ads" },
@@ -103,40 +101,43 @@ shared FacebookAds.Ads = (optional url as text, optional params as record) =>
         table;
 
 shared FacebookAds.AdAccountsToNavigationTable = (adAccounts as list) =>
+    
     let
+        a = Diagnostics.Trace(TraceLevel.Warning, "Hello", "test"),
         navHeader = {"Name","Key","Data","ItemKind", "ItemName", "IsLeaf"}, 
         navAdAccounts = List.Accumulate(adAccounts, {}, (state, current) => state & {{current[name], current[name], FacebookAds.GetInsights(current), "Table", "Table", false}} ),
         objects = #table(navHeader, navAdAccounts),
         table = Table.ToNavigationTable(objects, {"Key"}, "Name", "Data", "ItemKind", "ItemName", "IsLeaf")
     in
+        
         table;
 
 shared FacebookAds.GetInsights = (adAccount as record) =>
     let
         objects = #table(
             {"Name",                                            "Key",                                      "Data",                                                                 "ItemKind", "ItemName", "IsLeaf"},{
-            {"Facebook All Ad Insights",                        "Facebook All Ad Insights",                         FacebookAds.GetAdInsights(adAccount, "lifetime", false),        "Table",    "Table",    true},
+            {"Facebook All Ad Insights",                        "Facebook All Ad Insights",                         FacebookAds.GetAdInsights(adAccount, "maximum", false),        "Table",    "Table",    true},
             {"Facebook All Ad Insights Last 30 days",           "Facebook All Ad Insights Last 30 days",            FacebookAds.GetAdInsights(adAccount, "last_30d", false),        "Table",    "Table",    true},
             {"Facebook All Ad Insights Last 90 days",           "Facebook All Ad Insights Last 90 days",            FacebookAds.GetAdInsights(adAccount, "last_90d", false),        "Table",    "Table",    true},
 
-            {"Facebook Ad Actions",                             "Facebook Ad Actions",                              FacebookAds.GetAdActions(adAccount, "lifetime", false),         "Table",    "Table",    true},
+            {"Facebook Ad Actions",                             "Facebook Ad Actions",                              FacebookAds.GetAdActions(adAccount, "maximum", false),         "Table",    "Table",    true},
             {"Facebook Ad Actions Last 30 days",                "Facebook Ad Actions Last 30 days",                 FacebookAds.GetAdActions(adAccount, "last_30d", false),         "Table",    "Table",    true},
             {"Facebook Ad Actions Last 90 days",                "Facebook Ad Actions Last 90 days",                 FacebookAds.GetAdActions(adAccount, "last_90d", false),         "Table",    "Table",    true},
 
-            {"Facebook Ad Action Values",                       "Facebook Ad Action Values",                        FacebookAds.GetAdActionValues(adAccount, "lifetime", false),    "Table",    "Table",    true},
+            {"Facebook Ad Action Values",                       "Facebook Ad Action Values",                        FacebookAds.GetAdActionValues(adAccount, "maximum", false),    "Table",    "Table",    true},
             {"Facebook Ad Action Values Last 30 days",          "Facebook Ad Action Values Last 30 days",           FacebookAds.GetAdActionValues(adAccount, "last_30d", false),    "Table",    "Table",    true},
             {"Facebook Ad Action Values Last 90 days",          "Facebook Ad Action Values Last 90 days",           FacebookAds.GetAdActionValues(adAccount, "last_90d", false),    "Table",    "Table",    true},
 
 
-            {"Facebook Active Ad Insights",                     "Facebook Active Ad Insights",                      FacebookAds.GetAdInsights(adAccount, "lifetime", true),         "Table",    "Table",    true},
+            {"Facebook Active Ad Insights",                     "Facebook Active Ad Insights",                      FacebookAds.GetAdInsights(adAccount, "maximum", true),         "Table",    "Table",    true},
             {"Facebook Active Ad Insights Last 30 days",        "Facebook Active Ad Insights Last 30 days",         FacebookAds.GetAdInsights(adAccount, "last_30d", true),         "Table",    "Table",    true},
             {"Facebook Active Ad Insights Last 90 days",        "Facebook Active Ad Insights Last 90 days",         FacebookAds.GetAdInsights(adAccount, "last_90d", true),         "Table",    "Table",    true},
 
-            {"Facebook Active Ad Actions",                      "Facebook Active Ad Actions",                       FacebookAds.GetAdActions(adAccount, "lifetime", true),          "Table",    "Table",    true},
+            {"Facebook Active Ad Actions",                      "Facebook Active Ad Actions",                       FacebookAds.GetAdActions(adAccount, "maximum", true),          "Table",    "Table",    true},
             {"Facebook Active Ad Actions Last 30 days",         "Facebook Active Ad Actions Last 30 days",          FacebookAds.GetAdActions(adAccount, "last_30d", true),          "Table",    "Table",    true},
             {"Facebook Active Ad Actions Last 90 days",         "Facebook Active Ad Actions Last 90 days",          FacebookAds.GetAdActions(adAccount, "last_90d", true),          "Table",    "Table",    true},
 
-            {"Facebook Active Ad Action Values",                "Facebook Active Ad Action Values",                 FacebookAds.GetAdActionValues(adAccount, "lifetime", true),     "Table",    "Table",    true},
+            {"Facebook Active Ad Action Values",                "Facebook Active Ad Action Values",                 FacebookAds.GetAdActionValues(adAccount, "maximum", true),     "Table",    "Table",    true},
             {"Facebook Active Ad Action Values Last 30 days",   "Facebook Active Ad Action Values Last 30 days",    FacebookAds.GetAdActionValues(adAccount, "last_30d", true),     "Table",    "Table",    true},
             {"Facebook Active Ad Action Values Last 90 days",   "Facebook Active Ad Action Values Last 90 days",    FacebookAds.GetAdActionValues(adAccount, "last_90d", true),     "Table",    "Table",    true}
 
