@@ -1,7 +1,7 @@
 {
    "web":{
-      "client_id": "",
-      "client_secret": "",
+      "client_id": "78cudz1kdwvlqk",
+      "client_secret": "Pc6c5YeWW4L7yGJT",
       "auth_uri": "https://www.linkedin.com/oauth/v2/authorization",
       "token_uri": "https://www.linkedin.com/oauth/v2/accessToken",
       "redirect_uris": ["https://oauth.powerbi.com/views/oauthredirect.html"]
